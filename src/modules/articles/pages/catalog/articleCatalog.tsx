@@ -1,9 +1,7 @@
 import { Button } from "@/components/elements/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/elements/sheet";
-import { getArticleColumns } from "./components/ArticleColumns";
-import { ArticleDataTable } from "./components/ArticleDataTable";
-import { ArticleForm } from "./components/ArticleForm";
 import { useCatalogHandler } from "./articleCatalogHandler";
+import { ArticleDataTable, ArticleForm, getArticleColumns } from "./components";
 
 const ArticleCatalog = () => {
     const {

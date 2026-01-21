@@ -45,7 +45,7 @@ export const ArticleForm = ({ initialData, onSubmit, onCancel, isLoading }: Arti
     }, [initialData, reset]);
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-4 py-2">
             <div className="space-y-2">
                 <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Name
