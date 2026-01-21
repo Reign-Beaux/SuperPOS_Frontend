@@ -4,7 +4,7 @@ import type { UpdateArticleRequest } from "@/modules/articles/models/Article";
 import { type ArticleFormValues, articleSchema } from "@/modules/articles/schemes/ArticleScheme";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 interface ArticleFormProps {
     initialData?: UpdateArticleRequest;
@@ -15,7 +15,7 @@ interface ArticleFormProps {
 
 export const ArticleForm = ({ initialData, onSubmit, onCancel, isLoading }: ArticleFormProps) => {
     const {
-        register,
+        control,
         handleSubmit,
         reset,
         formState: { errors },
@@ -50,10 +50,16 @@ export const ArticleForm = ({ initialData, onSubmit, onCancel, isLoading }: Arti
                 <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Name
                 </label>
-                <Input
-                    {...register("name")}
-                    placeholder="Article Name"
-                    className={errors.name ? "border-red-500" : ""}
+                <Controller
+                    control={control}
+                    name="name"
+                    render={({ field }) => (
+                        <Input
+                            {...field}
+                            placeholder="Article Name"
+                            className={errors.name ? "border-red-500" : ""}
+                        />
+                    )}
                 />
                 {errors.name && (
                     <p className="text-sm text-red-500">{errors.name.message}</p>
@@ -64,10 +70,16 @@ export const ArticleForm = ({ initialData, onSubmit, onCancel, isLoading }: Arti
                 <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Description
                 </label>
-                <Input
-                    {...register("description")}
-                    placeholder="Description (Optional)"
-                    className={errors.description ? "border-red-500" : ""}
+                <Controller
+                    control={control}
+                    name="description"
+                    render={({ field }) => (
+                        <Input
+                            {...field}
+                            placeholder="Description (Optional)"
+                            className={errors.description ? "border-red-500" : ""}
+                        />
+                    )}
                 />
                 {errors.description && (
                     <p className="text-sm text-red-500">{errors.description.message}</p>
@@ -78,10 +90,16 @@ export const ArticleForm = ({ initialData, onSubmit, onCancel, isLoading }: Arti
                 <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Barcode
                 </label>
-                <Input
-                    {...register("barcode")}
-                    placeholder="Barcode"
-                    className={errors.barcode ? "border-red-500" : ""}
+                <Controller
+                    control={control}
+                    name="barcode"
+                    render={({ field }) => (
+                        <Input
+                            {...field}
+                            placeholder="Barcode"
+                            className={errors.barcode ? "border-red-500" : ""}
+                        />
+                    )}
                 />
                 {errors.barcode && (
                     <p className="text-sm text-red-500">{errors.barcode.message}</p>
