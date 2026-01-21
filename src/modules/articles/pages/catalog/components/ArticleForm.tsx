@@ -89,10 +89,10 @@ export const ArticleForm = ({ initialData, onSubmit, onCancel, isLoading }: Arti
             </div>
 
             <div className="flex justify-end space-x-2 pt-4">
-                <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+                <Button className="cursor-pointer" type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
                     Cancel
                 </Button>
-                <Button type="submit" disabled={isLoading}>
+                <Button className="cursor-pointer" type="submit" disabled={isLoading}>
                     {isLoading ? "Saving..." : initialData ? "Update" : "Create"}
                 </Button>
             </div>
