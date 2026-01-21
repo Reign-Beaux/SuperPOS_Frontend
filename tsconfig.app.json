@@ -40,8 +40,8 @@
       "@styles/*": [
         "./src/styles/*"
       ],
-      "@useCases/*": [
-        "./src/useCases/*"
+      "@modules/*": [
+        "./src/modules/*"
       ],
     },
     /* Linting */

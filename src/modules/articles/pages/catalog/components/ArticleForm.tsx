@@ -1,7 +1,7 @@
-import { Button } from "@/components/elements/button";
-import { Input } from "@/components/elements/input";
-import type { UpdateArticleRequest } from "@/modules/articles/models/Article";
-import { type ArticleFormValues, articleSchema } from "@/modules/articles/schemes/ArticleScheme";
+import { Button } from "@components/elements/button";
+import { Input } from "@components/elements/input";
+import type { UpdateArticleRequest } from "@modules/articles/models/Article";
+import { type ArticleFormValues, articleSchema } from "@modules/articles/schemes/ArticleScheme";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
