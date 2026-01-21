@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { Routes } from "./Routes";
 import { MainLayout } from "@/components/layouts";
+import ArticleCatalog from "@/modules/articles/pages/catalog/articleCatalog";
 
 const routes = [
     {
@@ -8,7 +9,12 @@ const routes = [
         element: (
             <MainLayout />
         ),
-        children: [],
+        children: [
+            {
+                path: Routes.Articles,
+                element: <ArticleCatalog />,
+            },
+        ],
     },
     {
         path: "*",
