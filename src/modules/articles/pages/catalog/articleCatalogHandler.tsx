@@ -10,6 +10,8 @@ export const useCatalogHandler = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+    const [articleToDelete, setArticleToDelete] = useState<string | null>(null);
 
     const loadArticles = async () => {
         setIsLoading(true);
@@ -34,12 +36,19 @@ export const useCatalogHandler = () => {
         setIsSheetOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure you want to delete this article?")) return;
+    const handleDeleteClick = (id: string) => {
+        setArticleToDelete(id);
+        setIsDeleteConfirmOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!articleToDelete) return;
 
         try {
-            await deleteArticle(id);
+            await deleteArticle(articleToDelete);
             await loadArticles();
+            setIsDeleteConfirmOpen(false);
+            setArticleToDelete(null);
         } catch (error) {
             console.error("Failed to delete article", error);
         }
@@ -82,10 +91,13 @@ export const useCatalogHandler = () => {
         isLoading,
         isSheetOpen,
         selectedArticle,
+        isDeleteConfirmOpen,
         setIsSheetOpen,
+        setIsDeleteConfirmOpen,
         handleCreate,
         handleEdit,
-        handleDelete,
+        handleDeleteClick,
+        handleConfirmDelete,
         handleSubmit
     };
 };

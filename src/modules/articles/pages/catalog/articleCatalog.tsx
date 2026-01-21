@@ -1,7 +1,10 @@
 import { Button } from "@/components/elements/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/elements/sheet";
+import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
+import { getArticleColumns } from "./components/ArticleColumns";
+import { ArticleDataTable } from "./components/ArticleDataTable";
+import { ArticleForm } from "./components/ArticleForm";
 import { useCatalogHandler } from "./articleCatalogHandler";
-import { ArticleDataTable, ArticleForm, getArticleColumns } from "./components";
 
 const ArticleCatalog = () => {
     const {
@@ -9,17 +12,20 @@ const ArticleCatalog = () => {
         isLoading,
         isSheetOpen,
         selectedArticle,
+        isDeleteConfirmOpen,
         setIsSheetOpen,
+        setIsDeleteConfirmOpen,
         handleCreate,
         handleEdit,
-        handleDelete,
+        handleDeleteClick,
+        handleConfirmDelete,
         handleSubmit
     } = useCatalogHandler();
 
     const columns = getArticleColumns({
         article: {} as any, // This prop is not used in column definition generation logic specifically but required by interface
         onEdit: handleEdit,
-        onDelete: handleDelete
+        onDelete: handleDeleteClick
     });
 
     return (
@@ -50,6 +56,16 @@ const ArticleCatalog = () => {
                     </div>
                 </SheetContent>
             </Sheet>
+
+            <ConfirmDialog
+                open={isDeleteConfirmOpen}
+                onOpenChange={setIsDeleteConfirmOpen}
+                title="Delete Article"
+                description="Are you sure you want to delete this article? This action cannot be undone."
+                onConfirm={handleConfirmDelete}
+                variant="destructive"
+                confirmText="Delete"
+            />
         </div>
     );
 };

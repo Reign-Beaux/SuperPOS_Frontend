@@ -45,45 +45,46 @@ export const ArticleForm = ({ initialData, onSubmit, onCancel, isLoading }: Arti
     }, [initialData, reset]);
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-4 py-2">
-            <div className="space-y-2">
-                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-5">
+            <div className="flex flex-col gap-2">
+                <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Name
                 </label>
                 <Input
                     {...register("name")}
                     placeholder="Article Name"
-                    className={errors.name ? "border-destructive focus-visible:ring-destructive" : ""}
+                    className={errors.name ? "border-red-500" : ""}
                 />
                 {errors.name && (
-                    <span className="text-sm font-medium text-destructive">{errors.name.message}</span>
+                    <p className="text-sm text-red-500">{errors.name.message}</p>
                 )}
             </div>
 
-            <div className="space-y-2">
-                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            <div className="flex flex-col gap-2">
+                <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Description
                 </label>
                 <Input
                     {...register("description")}
-                    placeholder="Description"
+                    placeholder="Description (Optional)"
+                    className={errors.description ? "border-red-500" : ""}
                 />
                 {errors.description && (
-                    <span className="text-sm font-medium text-destructive">{errors.description.message}</span>
+                    <p className="text-sm text-red-500">{errors.description.message}</p>
                 )}
             </div>
 
-            <div className="space-y-2">
-                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            <div className="flex flex-col gap-2">
+                <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Barcode
                 </label>
                 <Input
                     {...register("barcode")}
                     placeholder="Barcode"
-                    className={errors.barcode ? "border-destructive focus-visible:ring-destructive" : ""}
+                    className={errors.barcode ? "border-red-500" : ""}
                 />
                 {errors.barcode && (
-                    <span className="text-sm font-medium text-destructive">{errors.barcode.message}</span>
+                    <p className="text-sm text-red-500">{errors.barcode.message}</p>
                 )}
             </div>
 
