@@ -1,7 +1,7 @@
 export const Routes = {
     Home: "/",
     Inventory: "/inventory",
-    Articles: "/articles",
+    Products: "/products",
 } as const;
 
 export type Routes = typeof Routes[keyof typeof Routes];

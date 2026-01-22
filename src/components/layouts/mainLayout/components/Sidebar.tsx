@@ -20,8 +20,8 @@ const items = [
         icon: Home,
     },
     {
-        title: "Articles",
-        url: Routes.Articles,
+        title: "Products",
+        url: Routes.Products,
         icon: Package,
     },
     {

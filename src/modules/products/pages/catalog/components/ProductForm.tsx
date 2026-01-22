@@ -1,26 +1,26 @@
 import { Button } from "@components/elements/button";
 import { Input } from "@components/elements/input";
-import type { UpdateArticleRequest } from "@modules/articles/models/Article";
-import { type ArticleFormValues, articleSchema } from "@modules/articles/schemes/ArticleScheme";
+import type { UpdateProductRequest } from "@modules/products/models/Product";
+import { type ProductFormValues, productSchema } from "@modules/products/schemes/ProductScheme";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-interface ArticleFormProps {
-    initialData?: UpdateArticleRequest;
-    onSubmit: (data: ArticleFormValues) => void;
+interface ProductFormProps {
+    initialData?: UpdateProductRequest;
+    onSubmit: (data: ProductFormValues) => void;
     onCancel: () => void;
     isLoading?: boolean;
 }
 
-export const ArticleForm = ({ initialData, onSubmit, onCancel, isLoading }: ArticleFormProps) => {
+export const ProductForm = ({ initialData, onSubmit, onCancel, isLoading }: ProductFormProps) => {
     const {
         control,
         handleSubmit,
         reset,
         formState: { errors },
-    } = useForm<ArticleFormValues>({
-        resolver: zodResolver(articleSchema),
+    } = useForm<ProductFormValues>({
+        resolver: zodResolver(productSchema),
         defaultValues: {
             name: "",
             description: "",
@@ -56,7 +56,7 @@ export const ArticleForm = ({ initialData, onSubmit, onCancel, isLoading }: Arti
                     render={({ field }) => (
                         <Input
                             {...field}
-                            placeholder="Article Name"
+                            placeholder="Product Name"
                             className={errors.name ? "border-red-500" : ""}
                         />
                     )}

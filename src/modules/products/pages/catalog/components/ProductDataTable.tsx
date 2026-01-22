@@ -1,11 +1,11 @@
-import type { Column } from "./ArticleColumns";
+import type { Column } from "./ProductColumns";
 
 interface DataTableProps<T> {
     columns: Column<T>[];
     data: T[];
 }
 
-export function ArticleDataTable<T extends { id: string }>({ columns, data }: DataTableProps<T>) {
+export function ProductDataTable<T extends { id: string }>({ columns, data }: DataTableProps<T>) {
     return (
         <div className="rounded-md border">
             <table className="w-full text-sm">

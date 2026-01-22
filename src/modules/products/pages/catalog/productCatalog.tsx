@@ -1,17 +1,17 @@
 import { Button } from "@/components/elements/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/elements/sheet";
 import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
-import { getArticleColumns } from "./components/ArticleColumns";
-import { ArticleDataTable } from "./components/ArticleDataTable";
-import { ArticleForm } from "./components/ArticleForm";
-import { useCatalogHandler } from "./articleCatalogHandler";
+import { getProductColumns } from "./components/ProductColumns";
+import { ProductDataTable } from "./components/ProductDataTable";
+import { ProductForm } from "./components/ProductForm";
+import { useCatalogHandler } from "./productCatalogHandler";
 
-const ArticleCatalog = () => {
+const ProductCatalog = () => {
     const {
-        articles,
+        products,
         isLoading,
         isSheetOpen,
-        selectedArticle,
+        selectedProduct,
         isDeleteConfirmOpen,
         setIsSheetOpen,
         setIsDeleteConfirmOpen,
@@ -22,8 +22,8 @@ const ArticleCatalog = () => {
         handleSubmit
     } = useCatalogHandler();
 
-    const columns = getArticleColumns({
-        article: {} as any, // This prop is not used in column definition generation logic specifically but required by interface
+    const columns = getProductColumns({
+        product: {} as any, // This prop is not used in column definition generation logic specifically but required by interface
         onEdit: handleEdit,
         onDelete: handleDeleteClick
     });
@@ -31,24 +31,24 @@ const ArticleCatalog = () => {
     return (
         <div className="container mx-auto py-10 space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Articles</h1>
-                <Button onClick={handleCreate}>Create Article</Button>
+                <h1 className="text-3xl font-bold tracking-tight">Products</h1>
+                <Button onClick={handleCreate}>Create Product</Button>
             </div>
 
-            {isLoading && articles.length === 0 ? (
+            {isLoading && products.length === 0 ? (
                 <div>Loading...</div>
             ) : (
-                <ArticleDataTable columns={columns} data={articles} />
+                <ProductDataTable columns={columns} data={products} />
             )}
 
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                 <SheetContent>
                     <SheetHeader>
-                        <SheetTitle>{selectedArticle ? "Edit Article" : "Create Article"}</SheetTitle>
+                        <SheetTitle>{selectedProduct ? "Edit Product" : "Create Product"}</SheetTitle>
                     </SheetHeader>
                     <div className="mt-6">
-                        <ArticleForm
-                            initialData={selectedArticle ? { ...selectedArticle, id: selectedArticle.id } : undefined}
+                        <ProductForm
+                            initialData={selectedProduct ? { ...selectedProduct, id: selectedProduct.id } : undefined}
                             onSubmit={handleSubmit}
                             onCancel={() => setIsSheetOpen(false)}
                             isLoading={isLoading}
@@ -60,8 +60,8 @@ const ArticleCatalog = () => {
             <ConfirmDialog
                 open={isDeleteConfirmOpen}
                 onOpenChange={setIsDeleteConfirmOpen}
-                title="Delete Article"
-                description="Are you sure you want to delete this article? This action cannot be undone."
+                title="Delete Product"
+                description="Are you sure you want to delete this product? This action cannot be undone."
                 onConfirm={handleConfirmDelete}
                 variant="destructive"
                 confirmText="Delete"
@@ -70,4 +70,4 @@ const ArticleCatalog = () => {
     );
 };
 
-export default ArticleCatalog;
+export default ProductCatalog;

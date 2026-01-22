@@ -1,96 +1,96 @@
-import { useArticleApi } from "@/modules/articles/articleApi";
-import type { Article, CreateArticleRequest, UpdateArticleRequest } from "@/modules/articles/models/Article";
-import type { ArticleFormValues } from "@/modules/articles/schemes/ArticleScheme";
+import { useProductApi } from "@/modules/products/productApi";
+import type { Product, CreateProductRequest, UpdateProductRequest } from "@/modules/products/models/Product";
+import type { ProductFormValues } from "@/modules/products/schemes/ProductScheme";
 import { useEffect, useState } from "react";
 
 export const useCatalogHandler = () => {
-    const { getAllArticles, createArticle, updateArticle, deleteArticle } = useArticleApi();
+    const { getAllProducts, createProduct, updateProduct, deleteProduct } = useProductApi();
 
-    const [articles, setArticles] = useState<Article[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
-    const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-    const [articleToDelete, setArticleToDelete] = useState<string | null>(null);
+    const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
-    const loadArticles = async () => {
+    const loadProducts = async () => {
         setIsLoading(true);
         try {
-            const data = await getAllArticles();
-            setArticles(data);
+            const data = await getAllProducts();
+            setProducts(data);
         } catch (error) {
             if (error instanceof Error && error.message === "Request cancelled") return;
-            console.error("Failed to load articles", error);
+            console.error("Failed to load products", error);
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleCreate = () => {
-        setSelectedArticle(null);
+        setSelectedProduct(null);
         setIsSheetOpen(true);
     };
 
-    const handleEdit = (article: Article) => {
-        setSelectedArticle(article);
+    const handleEdit = (product: Product) => {
+        setSelectedProduct(product);
         setIsSheetOpen(true);
     };
 
     const handleDeleteClick = (id: string) => {
-        setArticleToDelete(id);
+        setProductToDelete(id);
         setIsDeleteConfirmOpen(true);
     };
 
     const handleConfirmDelete = async () => {
-        if (!articleToDelete) return;
+        if (!productToDelete) return;
 
         try {
-            await deleteArticle(articleToDelete);
-            await loadArticles();
+            await deleteProduct(productToDelete);
+            await loadProducts();
             setIsDeleteConfirmOpen(false);
-            setArticleToDelete(null);
+            setProductToDelete(null);
         } catch (error) {
-            console.error("Failed to delete article", error);
+            console.error("Failed to delete product", error);
         }
     };
 
-    const handleSubmit = async (values: ArticleFormValues) => {
+    const handleSubmit = async (values: ProductFormValues) => {
         setIsLoading(true);
         try {
-            if (selectedArticle) {
-                const updateRequest: UpdateArticleRequest = {
-                    id: selectedArticle.id,
+            if (selectedProduct) {
+                const updateRequest: UpdateProductRequest = {
+                    id: selectedProduct.id,
                     name: values.name,
                     description: values.description ?? "",
                     barcode: values.barcode
                 };
-                await updateArticle(updateRequest);
+                await updateProduct(updateRequest);
             } else {
-                const createRequest: CreateArticleRequest = {
+                const createRequest: CreateProductRequest = {
                     name: values.name,
                     description: values.description ?? "",
                     barcode: values.barcode
                 };
-                await createArticle(createRequest);
+                await createProduct(createRequest);
             }
             setIsSheetOpen(false);
-            await loadArticles();
+            await loadProducts();
         } catch (error) {
-            console.error("Failed to save article", error);
+            console.error("Failed to save product", error);
         } finally {
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        loadArticles();
+        loadProducts();
     }, []);
 
     return {
-        articles,
+        products,
         isLoading,
         isSheetOpen,
-        selectedArticle,
+        selectedProduct,
         isDeleteConfirmOpen,
         setIsSheetOpen,
         setIsDeleteConfirmOpen,

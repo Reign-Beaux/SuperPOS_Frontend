@@ -1,4 +1,4 @@
-import type { Article } from "@/modules/articles/models/Article";
+import type { Product } from "@/modules/products/models/Product";
 import type { ReactNode } from "react";
 
 export interface Column<T> {
@@ -9,12 +9,12 @@ export interface Column<T> {
 }
 
 interface ActionsProps {
-    article: Article;
-    onEdit: (article: Article) => void;
+    product: Product;
+    onEdit: (product: Product) => void;
     onDelete: (id: string) => void;
 }
 
-export const getArticleColumns = ({ onEdit, onDelete }: ActionsProps): Column<Article>[] => [
+export const getProductColumns = ({ onEdit, onDelete }: ActionsProps): Column<Product>[] => [
     {
         header: "Name",
         accessorKey: "name",
@@ -30,16 +30,16 @@ export const getArticleColumns = ({ onEdit, onDelete }: ActionsProps): Column<Ar
     {
         header: "",
         className: "text-right",
-        cell: (article) => (
+        cell: (product) => (
             <div className="flex justify-end gap-2">
                 <button
-                    onClick={() => onEdit(article)}
+                    onClick={() => onEdit(product)}
                     className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded transition-colors cursor-pointer"
                 >
                     Edit
                 </button>
                 <button
-                    onClick={() => onDelete(article.id)}
+                    onClick={() => onDelete(product.id)}
                     className="text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 px-2 py-1 rounded transition-colors cursor-pointer"
                 >
                     Delete

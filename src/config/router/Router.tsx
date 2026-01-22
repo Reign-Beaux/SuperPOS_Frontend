@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { Routes } from "./Routes";
 import { MainLayout } from "@/components/layouts";
-import ArticleCatalog from "@/modules/articles/pages/catalog/articleCatalog";
+import ProductCatalog from "@/modules/products/pages/catalog/productCatalog";
 
 const routes = [
     {
@@ -11,8 +11,8 @@ const routes = [
         ),
         children: [
             {
-                path: Routes.Articles,
-                element: <ArticleCatalog />,
+                path: Routes.Products,
+                element: <ProductCatalog />,
             },
         ],
     },
