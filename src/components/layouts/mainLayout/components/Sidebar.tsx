@@ -1,4 +1,5 @@
 import { Home, Package, Settings } from "lucide-react"
+import { Link } from "react-router-dom"
 import { Routes } from "@/config/router/Routes"
 
 import {
@@ -41,10 +42,10 @@ export function Sidebar() {
                             {items.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild>
-                                        <a href={item.url}>
+                                        <Link to={item.url}>
                                             <item.icon />
                                             <span>{item.title}</span>
-                                        </a>
+                                        </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             ))}
