@@ -1,4 +1,5 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
+import { Home, Package, Settings } from "lucide-react"
+import { Routes } from "@/config/router/Routes"
 
 import {
     Sidebar as ShadcnSidebar,
@@ -9,9 +10,8 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-} from "@/components/elements/sidebar"
+} from "@components/elements/sidebar"
 
-// Menu items.
 const items = [
     {
         title: "Home",
@@ -19,19 +19,9 @@ const items = [
         icon: Home,
     },
     {
-        title: "Inbox",
-        url: "#",
-        icon: Inbox,
-    },
-    {
-        title: "Calendar",
-        url: "#",
-        icon: Calendar,
-    },
-    {
-        title: "Search",
-        url: "#",
-        icon: Search,
+        title: "Articles",
+        url: Routes.Articles,
+        icon: Package,
     },
     {
         title: "Settings",

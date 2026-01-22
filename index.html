@@ -1,13 +1,41 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>superpos-frontend</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>superpos-frontend</title>
+  <script>
+    (function () {
+      var storageKey = "vite-ui-theme";
+      var defaultTheme = "system";
+      var theme = localStorage.getItem(storageKey) || defaultTheme;
+      var root = window.document.documentElement;
+      root.classList.remove("light", "dark");
+
+      var isDark = theme === "dark";
+      if (theme === "system") {
+        isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      }
+
+      root.classList.add(isDark ? "dark" : "light");
+
+      // Immediate style application to prevent flash
+      if (isDark) {
+        root.style.backgroundColor = "oklch(0.13 0.028 261.692)";
+        root.style.color = "oklch(0.985 0.002 247.839)";
+      } else {
+        root.style.backgroundColor = "oklch(1 0 0)";
+        root.style.color = "oklch(0.13 0.028 261.692)";
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
