@@ -1,4 +1,4 @@
-import { Home, Package, Settings } from "lucide-react"
+import { Home, Package, Settings, Users } from "lucide-react"
 import { Link } from "react-router-dom"
 import { Routes } from "@/config/router/Routes"
 
@@ -23,6 +23,11 @@ const items = [
         title: "Products",
         url: Routes.Products,
         icon: Package,
+    },
+    {
+        title: "Users",
+        url: Routes.Users,
+        icon: Users,
     },
     {
         title: "Settings",
