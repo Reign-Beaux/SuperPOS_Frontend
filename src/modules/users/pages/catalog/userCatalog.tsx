@@ -1,8 +1,11 @@
 import { Button } from "@/components/elements/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/elements/sheet";
 import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
-import { getUserColumns } from "./components/UserColumns";
 import { DataTable } from "@/components/widgets/DataTable";
+import { FormSheet } from "@/components/widgets/FormSheet";
+import { PageHeader } from "@/components/widgets/PageHeader";
+import { TableToolbar } from "@/components/widgets/TableToolbar";
+import { useState } from "react";
+import { getUserColumns } from "./components/UserColumns";
 import { UserForm } from "./components/UserForm";
 import { useCatalogHandler } from "./userCatalogHandler";
 
@@ -22,6 +25,14 @@ const UserCatalog = () => {
         handleSubmit
     } = useCatalogHandler();
 
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredUsers = users.filter(u =>
+        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.firstLastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     const columns = getUserColumns({
         user: {} as any,
         onEdit: handleEdit,
@@ -30,32 +41,37 @@ const UserCatalog = () => {
 
     return (
         <div className="container mx-auto py-10 space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-                <Button onClick={handleCreate}>Create User</Button>
+            <PageHeader
+                title="Users"
+                action={<Button onClick={handleCreate}>Create User</Button>}
+            />
+
+            <div className="space-y-4">
+                <TableToolbar
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    searchPlaceholder="Filter users..."
+                />
+
+                {isLoading && users.length === 0 ? (
+                    <div>Loading...</div>
+                ) : (
+                    <DataTable columns={columns} data={filteredUsers} />
+                )}
             </div>
 
-            {isLoading && users.length === 0 ? (
-                <div>Loading...</div>
-            ) : (
-                <DataTable columns={columns} data={users} />
-            )}
-
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent>
-                    <SheetHeader>
-                        <SheetTitle>{selectedUser ? "Edit User" : "Create User"}</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-6">
-                        <UserForm
-                            initialData={selectedUser ? { ...selectedUser, id: selectedUser.id } : undefined}
-                            onSubmit={handleSubmit}
-                            onCancel={() => setIsSheetOpen(false)}
-                            isLoading={isLoading}
-                        />
-                    </div>
-                </SheetContent>
-            </Sheet>
+            <FormSheet
+                title={selectedUser ? "Edit User" : "Create User"}
+                isOpen={isSheetOpen}
+                onClose={() => setIsSheetOpen(false)}
+            >
+                <UserForm
+                    initialData={selectedUser ? { ...selectedUser, id: selectedUser.id } : undefined}
+                    onSubmit={handleSubmit}
+                    onCancel={() => setIsSheetOpen(false)}
+                    isLoading={isLoading}
+                />
+            </FormSheet>
 
             <ConfirmDialog
                 open={isDeleteConfirmOpen}

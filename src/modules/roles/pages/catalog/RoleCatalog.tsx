@@ -1,8 +1,11 @@
 import { Button } from "@/components/elements/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/elements/sheet";
 import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
-import { getRoleColumns } from "./components/RoleColumns";
 import { DataTable } from "@/components/widgets/DataTable";
+import { FormSheet } from "@/components/widgets/FormSheet";
+import { PageHeader } from "@/components/widgets/PageHeader";
+import { TableToolbar } from "@/components/widgets/TableToolbar";
+import { useState } from "react";
+import { getRoleColumns } from "./components/RoleColumns";
 import { RoleForm } from "./components/RoleForm";
 import { useRoleCatalogHandler } from "./roleCatalogHandler";
 
@@ -22,6 +25,12 @@ const RoleCatalog = () => {
         handleSubmit
     } = useRoleCatalogHandler();
 
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredRoles = roles.filter(r =>
+        r.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     const columns = getRoleColumns({
         onEdit: handleEdit,
         onDelete: handleDeleteClick
@@ -29,32 +38,37 @@ const RoleCatalog = () => {
 
     return (
         <div className="container mx-auto py-10 space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Roles</h1>
-                <Button onClick={handleCreate}>Create Role</Button>
+            <PageHeader
+                title="Roles"
+                action={<Button onClick={handleCreate}>Create Role</Button>}
+            />
+
+            <div className="space-y-4">
+                <TableToolbar
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    searchPlaceholder="Filter roles..."
+                />
+
+                {isLoading && roles.length === 0 ? (
+                    <div>Loading...</div>
+                ) : (
+                    <DataTable columns={columns} data={filteredRoles} />
+                )}
             </div>
 
-            {isLoading && roles.length === 0 ? (
-                <div>Loading...</div>
-            ) : (
-                <DataTable columns={columns} data={roles} />
-            )}
-
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent>
-                    <SheetHeader>
-                        <SheetTitle>{selectedRole ? "Edit Role" : "Create Role"}</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-6">
-                        <RoleForm
-                            initialData={selectedRole ? { ...selectedRole, id: selectedRole.id } : undefined}
-                            onSubmit={handleSubmit}
-                            onCancel={() => setIsSheetOpen(false)}
-                            isLoading={isLoading}
-                        />
-                    </div>
-                </SheetContent>
-            </Sheet>
+            <FormSheet
+                title={selectedRole ? "Edit Role" : "Create Role"}
+                isOpen={isSheetOpen}
+                onClose={() => setIsSheetOpen(false)}
+            >
+                <RoleForm
+                    initialData={selectedRole ? { ...selectedRole, id: selectedRole.id } : undefined}
+                    onSubmit={handleSubmit}
+                    onCancel={() => setIsSheetOpen(false)}
+                    isLoading={isLoading}
+                />
+            </FormSheet >
 
             <ConfirmDialog
                 open={isDeleteConfirmOpen}
@@ -65,7 +79,7 @@ const RoleCatalog = () => {
                 variant="destructive"
                 confirmText="Delete"
             />
-        </div>
+        </div >
     );
 };
 

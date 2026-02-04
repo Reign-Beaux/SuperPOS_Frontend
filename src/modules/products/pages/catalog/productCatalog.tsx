@@ -1,8 +1,11 @@
 import { Button } from "@/components/elements/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/elements/sheet";
 import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
-import { getProductColumns } from "./components/ProductColumns";
 import { DataTable } from "@/components/widgets/DataTable";
+import { FormSheet } from "@/components/widgets/FormSheet";
+import { PageHeader } from "@/components/widgets/PageHeader";
+import { TableToolbar } from "@/components/widgets/TableToolbar";
+import { useState } from "react";
+import { getProductColumns } from "./components/ProductColumns";
 import { ProductForm } from "./components/ProductForm";
 import { useCatalogHandler } from "./productCatalogHandler";
 
@@ -22,40 +25,52 @@ const ProductCatalog = () => {
         handleSubmit
     } = useCatalogHandler();
 
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredProducts = products.filter(p =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.barcode && p.barcode.includes(searchTerm))
+    );
+
     const columns = getProductColumns({
-        product: {} as any, // This prop is not used in column definition generation logic specifically but required by interface
+        product: {} as any,
         onEdit: handleEdit,
         onDelete: handleDeleteClick
     });
 
     return (
         <div className="container mx-auto py-10 space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-                <Button onClick={handleCreate}>Create Product</Button>
+            <PageHeader
+                title="Products"
+                action={<Button onClick={handleCreate}>Create Product</Button>}
+            />
+
+            <div className="space-y-4">
+                <TableToolbar
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    searchPlaceholder="Filter products..."
+                />
+
+                {isLoading && products.length === 0 ? (
+                    <div>Loading...</div>
+                ) : (
+                    <DataTable columns={columns} data={filteredProducts} />
+                )}
             </div>
 
-            {isLoading && products.length === 0 ? (
-                <div>Loading...</div>
-            ) : (
-                <DataTable columns={columns} data={products} />
-            )}
-
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent>
-                    <SheetHeader>
-                        <SheetTitle>{selectedProduct ? "Edit Product" : "Create Product"}</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-6">
-                        <ProductForm
-                            initialData={selectedProduct ? { ...selectedProduct, id: selectedProduct.id } : undefined}
-                            onSubmit={handleSubmit}
-                            onCancel={() => setIsSheetOpen(false)}
-                            isLoading={isLoading}
-                        />
-                    </div>
-                </SheetContent>
-            </Sheet>
+            <FormSheet
+                title={selectedProduct ? "Edit Product" : "Create Product"}
+                isOpen={isSheetOpen}
+                onClose={() => setIsSheetOpen(false)}
+            >
+                <ProductForm
+                    initialData={selectedProduct ? { ...selectedProduct, id: selectedProduct.id } : undefined}
+                    onSubmit={handleSubmit}
+                    onCancel={() => setIsSheetOpen(false)}
+                    isLoading={isLoading}
+                />
+            </FormSheet>
 
             <ConfirmDialog
                 open={isDeleteConfirmOpen}

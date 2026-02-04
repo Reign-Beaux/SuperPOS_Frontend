@@ -1,15 +1,16 @@
 import { Button } from "@/components/elements/button";
 import { Input } from "@/components/elements/input";
+import { SearchableSelect } from "@/components/widgets/SearchableSelect";
 import { useCustomerApi } from "@/modules/customers/api/customerApi";
 import type { Customer } from "@/modules/customers/models/Customer";
 import { useInventoryApi } from "@/modules/inventories/api/inventoryApi";
-import { useProductApi } from "@/modules/products/productApi";
 import type { Product } from "@/modules/products/models/Product";
+import { useProductApi } from "@/modules/products/productApi";
 import { useSaleApi } from "@/modules/sales/api/saleApi";
+import type { User } from "@/modules/users/models/User";
+import { useUserApi } from "@/modules/users/userApi";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUserApi } from "@/modules/users/userApi";
-import type { User } from "@/modules/users/models/User";
 
 interface CartItem {
     product: Product;
@@ -175,34 +176,28 @@ const POS = () => {
                     </div>
                 </div>
 
-                {/* Right: Cart & Checkout */}
                 <div className="flex flex-col gap-4 border rounded-md p-4 bg-background">
+
                     <div className="space-y-2">
                         <label className="text-sm font-medium">User (Seller)</label>
-                        <select
-                            className="w-full border rounded-md p-2 bg-background"
+                        <SearchableSelect
+                            options={users.map(u => ({ label: `${u.name} ${u.firstLastname}`, value: u.id }))}
                             value={selectedUserId}
-                            onChange={e => setSelectedUserId(e.target.value)}
-                        >
-                            <option value="">Select User</option>
-                            {users.map(u => (
-                                <option key={u.id} value={u.id}>{u.name} {u.firstLastname}</option>
-                            ))}
-                        </select>
+                            onSelect={setSelectedUserId}
+                            placeholder="Select User"
+                            searchPlaceholder="Search user..."
+                        />
                     </div>
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Customer</label>
-                        <select
-                            className="w-full border rounded-md p-2 bg-background"
+                        <SearchableSelect
+                            options={customers.map(c => ({ label: `${c.name} ${c.firstLastname}`, value: c.id }))}
                             value={selectedCustomerId}
-                            onChange={e => setSelectedCustomerId(e.target.value)}
-                        >
-                            <option value="">Select Customer</option>
-                            {customers.map(c => (
-                                <option key={c.id} value={c.id}>{c.name} {c.firstLastname}</option>
-                            ))}
-                        </select>
+                            onSelect={setSelectedCustomerId}
+                            placeholder="Select Customer"
+                            searchPlaceholder="Search customer..."
+                        />
                     </div>
 
                     <div className="flex-1 overflow-y-auto border-t border-b py-2 space-y-2">
@@ -240,7 +235,7 @@ const POS = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

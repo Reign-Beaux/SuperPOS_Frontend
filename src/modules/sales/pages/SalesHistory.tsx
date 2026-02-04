@@ -1,9 +1,12 @@
 import { Button } from "@/components/elements/button";
+import { DataTable } from "@/components/widgets/DataTable";
+import { PageHeader } from "@/components/widgets/PageHeader";
+import { StatCard } from "@/components/widgets/StatCard";
 import { useSaleApi } from "@/modules/sales/api/saleApi";
 import type { Sale } from "@/modules/sales/models/Sale";
+import { DollarSign, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 const SalesHistory = () => {
     const { getAllSales } = useSaleApi();
     const navigate = useNavigate();
@@ -25,47 +28,62 @@ const SalesHistory = () => {
         loadSales();
     }, []);
 
+    const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
+    const totalSalesCount = sales.length;
+
+    const columns = [
+        {
+            header: "Date",
+            cell: (sale: Sale) => new Date(sale.createdAt).toLocaleString(),
+        },
+        {
+            header: "Customer",
+            accessorKey: "customerName" as keyof Sale,
+        },
+        {
+            header: "User",
+            accessorKey: "userName" as keyof Sale,
+        },
+        {
+            header: "Total",
+            className: "text-right",
+            cell: (sale: Sale) => `$${sale.totalAmount.toFixed(2)}`,
+        },
+        {
+            header: "Items",
+            className: "text-right",
+            cell: (sale: Sale) => sale.details.length,
+        }
+    ];
+
     return (
         <div className="container mx-auto py-10 space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Sales History</h1>
-                <Button onClick={() => navigate("/sales/pos")}>New Sale (POS)</Button>
+            <PageHeader
+                title="Sales History"
+                action={<Button onClick={() => navigate("/sales/pos")}>New Sale (POS)</Button>}
+            />
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <StatCard
+                    title="Total Revenue"
+                    value={`$${totalRevenue.toFixed(2)}`}
+                    icon={DollarSign}
+                    variation="positive"
+                    description="Gross revenue from all sales"
+                />
+                <StatCard
+                    title="Total Sales"
+                    value={totalSalesCount}
+                    icon={ShoppingBag}
+                    description="Total transactions"
+                />
             </div>
 
-            <div className="rounded-md border">
-                <table className="w-full text-sm">
-                    <thead className="border-b bg-muted/50">
-                        <tr>
-                            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Date</th>
-                            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Customer</th>
-                            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">User</th>
-                            <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Total</th>
-                            <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Items</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {isLoading ? (
-                            <tr>
-                                <td colSpan={5} className="h-24 text-center">Loading...</td>
-                            </tr>
-                        ) : sales.length === 0 ? (
-                            <tr>
-                                <td colSpan={5} className="h-24 text-center">No sales found.</td>
-                            </tr>
-                        ) : (
-                            sales.map((sale) => (
-                                <tr key={sale.id} className="border-b transition-colors hover:bg-muted/50">
-                                    <td className="p-4 align-middle">{new Date(sale.createdAt).toLocaleString()}</td>
-                                    <td className="p-4 align-middle">{sale.customerName}</td>
-                                    <td className="p-4 align-middle">{sale.userName}</td>
-                                    <td className="p-4 align-middle text-right">${sale.totalAmount.toFixed(2)}</td>
-                                    <td className="p-4 align-middle text-right">{sale.details.length}</td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+            {isLoading && sales.length === 0 ? (
+                <div>Loading...</div>
+            ) : (
+                <DataTable columns={columns} data={sales} />
+            )}
         </div>
     );
 };

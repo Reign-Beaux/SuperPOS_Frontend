@@ -1,8 +1,11 @@
 import { Button } from "@/components/elements/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/elements/sheet";
 import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
-import { getCustomerColumns } from "./components/CustomerColumns";
 import { DataTable } from "@/components/widgets/DataTable";
+import { FormSheet } from "@/components/widgets/FormSheet";
+import { PageHeader } from "@/components/widgets/PageHeader";
+import { TableToolbar } from "@/components/widgets/TableToolbar";
+import { useState } from "react";
+import { getCustomerColumns } from "./components/CustomerColumns";
 import { CustomerForm } from "./components/CustomerForm";
 import { useCustomerCatalogHandler } from "./customerCatalogHandler";
 
@@ -22,6 +25,14 @@ const CustomerCatalog = () => {
         handleSubmit
     } = useCustomerCatalogHandler();
 
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredCustomers = customers.filter(c =>
+        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.firstLastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+    );
+
     const columns = getCustomerColumns({
         onEdit: handleEdit,
         onDelete: handleDeleteClick
@@ -29,32 +40,37 @@ const CustomerCatalog = () => {
 
     return (
         <div className="container mx-auto py-10 space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Customers</h1>
-                <Button onClick={handleCreate}>Create Customer</Button>
+            <PageHeader
+                title="Customers"
+                action={<Button onClick={handleCreate}>Create Customer</Button>}
+            />
+
+            <div className="space-y-4">
+                <TableToolbar
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    searchPlaceholder="Filter customers..."
+                />
+
+                {isLoading && customers.length === 0 ? (
+                    <div>Loading...</div>
+                ) : (
+                    <DataTable columns={columns} data={filteredCustomers} />
+                )}
             </div>
 
-            {isLoading && customers.length === 0 ? (
-                <div>Loading...</div>
-            ) : (
-                <DataTable columns={columns} data={customers} />
-            )}
-
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent>
-                    <SheetHeader>
-                        <SheetTitle>{selectedCustomer ? "Edit Customer" : "Create Customer"}</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-6">
-                        <CustomerForm
-                            initialData={selectedCustomer ? { ...selectedCustomer, id: selectedCustomer.id } : undefined}
-                            onSubmit={handleSubmit}
-                            onCancel={() => setIsSheetOpen(false)}
-                            isLoading={isLoading}
-                        />
-                    </div>
-                </SheetContent>
-            </Sheet>
+            <FormSheet
+                title={selectedCustomer ? "Edit Customer" : "Create Customer"}
+                isOpen={isSheetOpen}
+                onClose={() => setIsSheetOpen(false)}
+            >
+                <CustomerForm
+                    initialData={selectedCustomer ? { ...selectedCustomer, id: selectedCustomer.id } : undefined}
+                    onSubmit={handleSubmit}
+                    onCancel={() => setIsSheetOpen(false)}
+                    isLoading={isLoading}
+                />
+            </FormSheet>
 
             <ConfirmDialog
                 open={isDeleteConfirmOpen}
