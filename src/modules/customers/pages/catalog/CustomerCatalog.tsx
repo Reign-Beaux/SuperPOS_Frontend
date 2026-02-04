@@ -2,7 +2,7 @@ import { Button } from "@/components/elements/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/elements/sheet";
 import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
 import { getCustomerColumns } from "./components/CustomerColumns";
-import { CustomerDataTable } from "./components/CustomerDataTable";
+import { DataTable } from "@/components/widgets/DataTable";
 import { CustomerForm } from "./components/CustomerForm";
 import { useCustomerCatalogHandler } from "./customerCatalogHandler";
 
@@ -37,7 +37,7 @@ const CustomerCatalog = () => {
             {isLoading && customers.length === 0 ? (
                 <div>Loading...</div>
             ) : (
-                <CustomerDataTable columns={columns} data={customers} />
+                <DataTable columns={columns} data={customers} />
             )}
 
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>

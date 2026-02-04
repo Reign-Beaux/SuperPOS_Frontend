@@ -2,7 +2,7 @@ import { Button } from "@/components/elements/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/elements/sheet";
 import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
 import { getRoleColumns } from "./components/RoleColumns";
-import { RoleDataTable } from "./components/RoleDataTable";
+import { DataTable } from "@/components/widgets/DataTable";
 import { RoleForm } from "./components/RoleForm";
 import { useRoleCatalogHandler } from "./roleCatalogHandler";
 
@@ -37,7 +37,7 @@ const RoleCatalog = () => {
             {isLoading && roles.length === 0 ? (
                 <div>Loading...</div>
             ) : (
-                <RoleDataTable columns={columns} data={roles} />
+                <DataTable columns={columns} data={roles} />
             )}
 
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>

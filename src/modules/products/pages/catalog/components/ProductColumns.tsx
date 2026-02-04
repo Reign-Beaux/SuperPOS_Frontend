@@ -1,12 +1,6 @@
 import type { Product } from "@/modules/products/models/Product";
-import type { ReactNode } from "react";
+import type { Column } from "@/components/widgets/DataTable";
 
-export interface Column<T> {
-    header: string;
-    accessorKey?: keyof T;
-    cell?: (item: T) => ReactNode;
-    className?: string;
-}
 
 interface ActionsProps {
     product: Product;

@@ -1,12 +1,5 @@
 import type { Customer } from "@/modules/customers/models/Customer";
-import type { ReactNode } from "react";
-
-export interface Column<T> {
-    header: string;
-    accessorKey?: keyof T;
-    cell?: (item: T) => ReactNode;
-    className?: string;
-}
+import type { Column } from "@/components/widgets/DataTable";
 
 interface ActionsProps {
     onEdit: (customer: Customer) => void;

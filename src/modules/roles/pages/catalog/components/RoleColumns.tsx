@@ -1,12 +1,6 @@
 import type { Role } from "@/modules/roles/models/Role";
-import type { ReactNode } from "react";
+import type { Column } from "@/components/widgets/DataTable";
 
-export interface Column<T> {
-    header: string;
-    accessorKey?: keyof T;
-    cell?: (item: T) => ReactNode;
-    className?: string;
-}
 
 interface ActionsProps {
     onEdit: (role: Role) => void;

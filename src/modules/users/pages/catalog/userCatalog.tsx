@@ -2,7 +2,7 @@ import { Button } from "@/components/elements/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/elements/sheet";
 import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
 import { getUserColumns } from "./components/UserColumns";
-import { UserDataTable } from "./components/UserDataTable";
+import { DataTable } from "@/components/widgets/DataTable";
 import { UserForm } from "./components/UserForm";
 import { useCatalogHandler } from "./userCatalogHandler";
 
@@ -38,7 +38,7 @@ const UserCatalog = () => {
             {isLoading && users.length === 0 ? (
                 <div>Loading...</div>
             ) : (
-                <UserDataTable columns={columns} data={users} />
+                <DataTable columns={columns} data={users} />
             )}
 
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>

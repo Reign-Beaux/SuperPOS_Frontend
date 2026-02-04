@@ -1,11 +1,18 @@
-import type { Column } from "./ProductColumns";
+import type { ReactNode } from "react";
+
+export interface Column<T> {
+    header: string;
+    accessorKey?: keyof T;
+    cell?: (item: T) => ReactNode;
+    className?: string;
+}
 
 interface DataTableProps<T> {
     columns: Column<T>[];
     data: T[];
 }
 
-export function ProductDataTable<T extends { id: string }>({ columns, data }: DataTableProps<T>) {
+export function DataTable<T extends { id: string }>({ columns, data }: DataTableProps<T>) {
     return (
         <div className="rounded-md border">
             <table className="w-full text-sm">
@@ -42,7 +49,7 @@ export function ProductDataTable<T extends { id: string }>({ columns, data }: Da
                                         {column.cell
                                             ? column.cell(item)
                                             : column.accessorKey
-                                                ? (item[column.accessorKey] as React.ReactNode)
+                                                ? (item[column.accessorKey] as ReactNode)
                                                 : null}
                                     </td>
                                 ))}

@@ -2,7 +2,7 @@ import { Button } from "@/components/elements/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/elements/sheet";
 import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
 import { getProductColumns } from "./components/ProductColumns";
-import { ProductDataTable } from "./components/ProductDataTable";
+import { DataTable } from "@/components/widgets/DataTable";
 import { ProductForm } from "./components/ProductForm";
 import { useCatalogHandler } from "./productCatalogHandler";
 
@@ -38,7 +38,7 @@ const ProductCatalog = () => {
             {isLoading && products.length === 0 ? (
                 <div>Loading...</div>
             ) : (
-                <ProductDataTable columns={columns} data={products} />
+                <DataTable columns={columns} data={products} />
             )}
 
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
