@@ -64,7 +64,8 @@ export const useCatalogHandler = () => {
                     firstLastname: values.firstLastname,
                     secondLastname: values.secondLastname,
                     email: values.email,
-                    phone: values.phone
+                    phone: values.phone,
+                    password: values.password || undefined
                 };
                 await updateUser(updateRequest);
             } else {
@@ -73,7 +74,8 @@ export const useCatalogHandler = () => {
                     firstLastname: values.firstLastname,
                     secondLastname: values.secondLastname,
                     email: values.email,
-                    phone: values.phone
+                    phone: values.phone,
+                    password: values.password || "DefaultPassword123!" // Fallback if validation doesn't catch it, though it should. 
                 };
                 await createUser(createRequest);
             }

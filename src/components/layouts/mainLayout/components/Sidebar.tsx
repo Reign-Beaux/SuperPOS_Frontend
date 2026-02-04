@@ -1,4 +1,4 @@
-import { Home, Package, Settings, Users } from "lucide-react"
+import { Home, Package, Settings, Users, ShoppingCart, Shield, Contact } from "lucide-react"
 import { Link } from "react-router-dom"
 import { Routes } from "@/config/router/Routes"
 
@@ -20,14 +20,34 @@ const items = [
         icon: Home,
     },
     {
+        title: "POS",
+        url: Routes.POS,
+        icon: ShoppingCart,
+    },
+    {
+        title: "Sales History",
+        url: Routes.Sales,
+        icon: ShoppingCart,
+    },
+    {
         title: "Products",
         url: Routes.Products,
         icon: Package,
     },
     {
+        title: "Customers",
+        url: Routes.Customers,
+        icon: Contact,
+    },
+    {
         title: "Users",
         url: Routes.Users,
         icon: Users,
+    },
+    {
+        title: "Roles",
+        url: Routes.Roles,
+        icon: Shield,
     },
     {
         title: "Settings",

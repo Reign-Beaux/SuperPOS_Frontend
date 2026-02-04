@@ -146,6 +146,27 @@ export const UserForm = ({ initialData, onSubmit, onCancel, isLoading }: UserFor
                 )}
             </div>
 
+            <div className="flex flex-col gap-2">
+                <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Password {initialData ? "(Leave empty to keep current)" : "*"}
+                </label>
+                <Controller
+                    control={control}
+                    name="password"
+                    render={({ field }) => (
+                        <Input
+                            {...field}
+                            type="password"
+                            placeholder="Password"
+                            className={errors.password ? "border-red-500" : ""}
+                        />
+                    )}
+                />
+                {errors.password && (
+                    <p className="text-sm text-red-500">{errors.password.message}</p>
+                )}
+            </div>
+
             <div className="flex justify-end space-x-2 pt-4">
                 <Button className="cursor-pointer" type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
                     Cancel

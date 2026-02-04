@@ -7,5 +7,6 @@ export interface User {
   phone?: string;
 }
 
-export type CreateUserRequest = Omit<User, "id">;
-export type UpdateUserRequest = User;
+export type CreateUserRequest = Omit<User, "id"> & { password: string };
+export type UpdateUserRequest = User & { password?: string };
+
