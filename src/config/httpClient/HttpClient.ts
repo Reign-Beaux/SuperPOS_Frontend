@@ -1,5 +1,5 @@
 import axios, { type AxiosResponse } from "axios";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useInterceptor } from "./Interceptors";
 
 export const useHttpClient = () => {
@@ -8,13 +8,13 @@ export const useHttpClient = () => {
     const activeControllersRef = useRef<AbortController[]>([]);
     const apiUrl = import.meta.env.VITE_API_URL;
 
-    const addController = (controller: AbortController) => {
+    const addController = useCallback((controller: AbortController) => {
         activeControllersRef.current.push(controller);
-    };
+    }, []);
 
-    const removeController = (controller: AbortController) => {
+    const removeController = useCallback((controller: AbortController) => {
         activeControllersRef.current = activeControllersRef.current.filter((c) => c !== controller);
-    };
+    }, []);
 
     useEffect(() => {
         return () => {
@@ -27,7 +27,7 @@ export const useHttpClient = () => {
         };
     }, []);
 
-    const get = async <R>(endpoint: string) => {
+    const get = useCallback(async <R>(endpoint: string) => {
         const abortController = new AbortController();
         addController(abortController);
 
@@ -44,9 +44,9 @@ export const useHttpClient = () => {
         } finally {
             removeController(abortController);
         }
-    };
+    }, [addController, removeController, apiUrl]);
 
-    const post = async <D, R>(endpoint: string, data: D) => {
+    const post = useCallback(async <D, R>(endpoint: string, data: D) => {
         const abortController = new AbortController();
         addController(abortController);
 
@@ -63,9 +63,9 @@ export const useHttpClient = () => {
         } finally {
             removeController(abortController);
         }
-    };
+    }, [addController, removeController, apiUrl]);
 
-    const put = async <D, R>(endpoint: string, data: D) => {
+    const put = useCallback(async <D, R>(endpoint: string, data: D) => {
         const abortController = new AbortController();
         addController(abortController);
 
@@ -82,9 +82,9 @@ export const useHttpClient = () => {
         } finally {
             removeController(abortController);
         }
-    };
+    }, [addController, removeController, apiUrl]);
 
-    const remove = async <T>(endpoint: string) => {
+    const remove = useCallback(async <T>(endpoint: string) => {
         const abortController = new AbortController();
         addController(abortController);
 
@@ -101,16 +101,16 @@ export const useHttpClient = () => {
         } finally {
             removeController(abortController);
         }
-    };
+    }, [addController, removeController, apiUrl]);
 
-    const cancelAllRequests = () => {
+    const cancelAllRequests = useCallback(() => {
         activeControllersRef.current.forEach((controller) => {
             if (!controller.signal.aborted) {
                 controller.abort();
             }
         });
         activeControllersRef.current = [];
-    };
+    }, []);
 
     return {
         get,

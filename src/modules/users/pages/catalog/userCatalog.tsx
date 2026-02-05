@@ -62,6 +62,7 @@ const UserCatalog = () => {
 
             <FormSheet
                 title={selectedUser ? "Edit User" : "Create User"}
+                description={selectedUser ? "Update the user's details below." : "Enter the details for the new user."}
                 isOpen={isSheetOpen}
                 onClose={() => setIsSheetOpen(false)}
             >

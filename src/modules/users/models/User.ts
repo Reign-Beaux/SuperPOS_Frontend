@@ -5,6 +5,8 @@ export interface User {
   secondLastname?: string;
   email: string;
   phone?: string;
+  roleId: string;
+  roleName?: string;
 }
 
 export type CreateUserRequest = Omit<User, "id"> & { password: string };

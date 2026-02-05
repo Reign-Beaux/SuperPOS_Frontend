@@ -6,6 +6,8 @@ import { type UserFormValues, userSchema } from "@modules/users/schemes/UserSche
 import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { useRoleApi } from "@modules/roles/api/roleApi";
+import type { Role } from "@modules/roles/models/Role";
 
 interface UserFormProps {
   initialData?: UpdateUserRequest;
@@ -17,6 +19,26 @@ interface UserFormProps {
 export const UserForm = ({ initialData, onSubmit, onCancel, isLoading }: UserFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const { getAllRoles } = useRoleApi();
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await getAllRoles();
+        if (response && Array.isArray(response)) {
+          setRoles(response);
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error && error.message !== "Request cancelled") {
+          console.error("Failed to fetch roles", error);
+        }
+      }
+    };
+
+    fetchRoles();
+  }, [getAllRoles]);
+
   const {
     control,
     handleSubmit,
@@ -30,13 +52,22 @@ export const UserForm = ({ initialData, onSubmit, onCancel, isLoading }: UserFor
       secondLastname: "",
       email: "",
       phone: "",
+      roleId: "",
       confirmPassword: "",
     },
   });
 
   useEffect(() => {
     if (initialData) {
-      reset(initialData);
+      reset({
+        name: initialData.name,
+        firstLastname: initialData.firstLastname,
+        secondLastname: initialData.secondLastname || "",
+        email: initialData.email,
+        phone: initialData.phone || "",
+        roleId: initialData.roleId,
+        confirmPassword: "",
+      });
     } else {
       reset({
         name: "",
@@ -44,6 +75,7 @@ export const UserForm = ({ initialData, onSubmit, onCancel, isLoading }: UserFor
         secondLastname: "",
         email: "",
         phone: "",
+        roleId: "",
         confirmPassword: "",
       });
     }
@@ -130,7 +162,33 @@ export const UserForm = ({ initialData, onSubmit, onCancel, isLoading }: UserFor
             />
           )}
         />
-        {errors.phone && <p className="text-sm text-red-500">{errors.phone.message}</p>}
+      </div>
+      <div className="flex flex-col gap-2">
+        <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          Role
+        </label>
+        <Controller
+          control={control}
+          name="roleId"
+          render={({ field }) => (
+            <div className="relative">
+              <select
+                {...field}
+                className={`flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.roleId ? "border-red-500" : ""}`}
+              >
+                <option value="" disabled>Select a role</option>
+                {roles.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        />
+        {errors.roleId && (
+          <p className="text-sm text-red-500">{errors.roleId.message}</p>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">
