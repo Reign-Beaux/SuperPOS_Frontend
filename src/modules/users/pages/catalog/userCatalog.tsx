@@ -67,7 +67,15 @@ const UserCatalog = () => {
                 onClose={() => setIsSheetOpen(false)}
             >
                 <UserForm
-                    initialData={selectedUser ? { ...selectedUser, id: selectedUser.id } : undefined}
+                    initialData={selectedUser ? {
+                        id: selectedUser.id,
+                        name: selectedUser.name,
+                        firstLastname: selectedUser.firstLastname,
+                        secondLastname: selectedUser.secondLastname,
+                        email: selectedUser.email,
+                        phone: selectedUser.phone,
+                        roleId: selectedUser.role?.id || ""
+                    } : undefined}
                     onSubmit={handleSubmit}
                     onCancel={() => setIsSheetOpen(false)}
                     isLoading={isLoading}

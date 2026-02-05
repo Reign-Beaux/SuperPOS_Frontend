@@ -26,8 +26,7 @@ export const useUserApi = () => {
     }, [post]);
 
     const updateUser = useCallback(async (user: UpdateUserRequest) => {
-        const { id, ...data } = user;
-        return await put<Omit<UpdateUserRequest, 'id'>, void>(endpoints.update(id), data);
+        return await put<UpdateUserRequest, void>(endpoints.update(user.id), user);
     }, [put]);
 
     const deleteUser = useCallback(async (id: string) => {

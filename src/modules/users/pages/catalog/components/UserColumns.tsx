@@ -28,6 +28,10 @@ export const getUserColumns = ({ onEdit, onDelete }: ActionsProps): Column<User>
         accessorKey: "secondLastname",
     },
     {
+        header: "Role",
+        cell: (user) => user.role?.name || "-",
+    },
+    {
         header: "Email",
         accessorKey: "email",
     },

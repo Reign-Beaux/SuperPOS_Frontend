@@ -27,8 +27,7 @@ export const useProductApi = () => {
     }, [post]);
 
     const updateProduct = useCallback(async (product: UpdateProductRequest) => {
-        const { id, ...data } = product;
-        return await put<Omit<UpdateProductRequest, 'id'>, void>(endpoints.update(id), data);
+        return await put<UpdateProductRequest, void>(endpoints.update(product.id), product);
     }, [put]);
 
     const deleteProduct = useCallback(async (id: string) => {

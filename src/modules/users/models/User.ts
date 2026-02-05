@@ -1,3 +1,8 @@
+export interface UserRole {
+  id: string;
+  name: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -5,10 +10,27 @@ export interface User {
   secondLastname?: string;
   email: string;
   phone?: string;
-  roleId: string;
-  roleName?: string;
+  role?: UserRole;
 }
 
-export type CreateUserRequest = Omit<User, "id"> & { password: string };
-export type UpdateUserRequest = User & { password?: string };
+export interface CreateUserRequest {
+  name: string;
+  firstLastname: string;
+  secondLastname?: string;
+  email: string;
+  phone?: string;
+  roleId: string;
+  password: string;
+}
+
+export interface UpdateUserRequest {
+  id: string;
+  name: string;
+  firstLastname: string;
+  secondLastname?: string;
+  email: string;
+  phone?: string;
+  roleId: string;
+  password?: string;
+}
 

@@ -26,8 +26,7 @@ export const useCustomerApi = () => {
     }, [post]);
 
     const updateCustomer = useCallback(async (customer: UpdateCustomerRequest) => {
-        const { id, ...data } = customer;
-        return await put<Omit<UpdateCustomerRequest, 'id'>, void>(endpoints.update(id), data);
+        return await put<UpdateCustomerRequest, void>(endpoints.update(customer.id), customer);
     }, [put]);
 
     const deleteCustomer = useCallback(async (id: string) => {

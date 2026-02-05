@@ -26,8 +26,7 @@ export const useRoleApi = () => {
     }, [post]);
 
     const updateRole = useCallback(async (role: UpdateRoleRequest) => {
-        const { id, ...data } = role;
-        return await put<Omit<UpdateRoleRequest, 'id'>, void>(endpoints.update(id), data);
+        return await put<UpdateRoleRequest, void>(endpoints.update(role.id), role);
     }, [put]);
 
     const deleteRole = useCallback(async (id: string) => {
