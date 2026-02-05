@@ -2,18 +2,19 @@
 
 ## Project Overview
 
-This is the frontend for **SuperPOS**, a modern, web-based Point of Sale system. It is built with **React 19**, **TypeScript**, and **Vite 7**, ensuring a fast and type-safe development experience. The UI is designed with **Tailwind CSS 4** and extensively uses **Radix UI** primitives for accessibility and flexibility.
+This is the frontend for **SuperPOS**, a modern, web-based Point of Sale system. It is built with **React 19**, **TypeScript**, and **Vite**, ensuring a fast and type-safe development experience. The UI is designed with **Tailwind CSS 4** and built using **shadcn/ui**, which leverages **Radix UI** primitives for accessibility and flexibility.
 
 ## Tech Stack
 
-*   **Core**: React 19, TypeScript
-*   **Build Tool**: Vite 7
-*   **Styling**: Tailwind CSS 4, `clsx`, `tailwind-merge`
-*   **State Management**: Zustand
-*   **Routing**: React Router DOM 7
-*   **Forms**: React Hook Form, Zod
-*   **HTTP Client**: Axios
-*   **UI Components**: Radix UI (Primitives), Lucide React (Icons), Recharts (Charts)
+*   **Core**: React (`^19.2.0`), TypeScript (`~5.9.3`)
+*   **Build Tool**: Vite (`^7.2.4`)
+*   **Styling**: Tailwind CSS (`^4.1.18`), `clsx`, `tailwind-merge`
+*   **UI Framework**: **shadcn/ui**
+*   **UI Components**: Radix UI Primitives, Lucide React (Icons), Recharts (Charts)
+*   **State Management**: Zustand (`5.0.10`)
+*   **Routing**: React Router DOM (`7.12.0`)
+*   **Forms**: React Hook Form (`7.71.0`), Zod (`^4.3.5`)
+*   **HTTP Client**: Axios (`1.13.2`)
 
 ## Architecture
 
@@ -26,24 +27,25 @@ The project follows a **Feature-First / Modular** architecture. The core logic i
     *   `httpClient`: Centralized Axios instance.
     *   `router`: App-wide routing definitions.
     *   `stores`: Global Zustand stores.
-*   **`src/components`**: Shared, reusable UI components:
-    *   `elements`: Atomic UI building blocks (buttons, inputs).
+*   **`src/components`**: Shared, reusable UI components built with `shadcn/ui`:
+    *   `elements`: Atomic UI building blocks (buttons, inputs), often directly from `shadcn/ui`.
     *   `widgets`: Complex, business-agnostic components (dialogs, tables).
     *   `layouts`: Application layouts (e.g., `MainLayout`).
     *   `providers`: Context providers (e.g., ThemeProvider).
+*   **`src/shared`**: Shared utilities, hooks, and constants that are not specific to any single domain.
 
 ## Development Conventions
 
 *   **Linting**: ESLint with `typescript-eslint` and `react-hooks` plugins.
 *   **Formatting**: Prettier (implied usage with standard config).
-*   **Path Aliases**:
-    *   `@`: `src`
-    *   `@modules`: `src/modules` (Core domain logic)
-    *   `@components`: `src/components` (Shared UI)
-    *   `@config`: `src/config` (Global settings)
-    *   `@shared`: `src/shared` (Utilities)
-    *   `@styles`: `src/styles` (Global CSS)
-    *   `@features`: `src/features` (Currently reserved/unused)
+*   **Path Aliases** (defined in `tsconfig.json`):
+    *   `@/*`: `./src/*`
+    *   `@components/*`: `./src/components/*`
+    *   `@config/*`: `./src/config/*`
+    *   `@features/*`: `./src/features/*`
+    *   `@shared/*`: `./src/shared/*`
+    *   `@styles/*`: `./src/styles/*`
+    *   `@modules/*`: `./src/modules/*`
 
 ## Getting Started
 
