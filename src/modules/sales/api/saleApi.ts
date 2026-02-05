@@ -1,4 +1,5 @@
 import { useHttpClient } from "@/config/httpClient";
+import { useCallback } from "react";
 import type { Sale, CreateSaleRequest } from "../models/Sale";
 
 const endpoints = {
@@ -10,17 +11,17 @@ const endpoints = {
 export const useSaleApi = () => {
     const { get, post } = useHttpClient();
 
-    const getAllSales = async () => {
+    const getAllSales = useCallback(async () => {
         return await get<Sale[]>(endpoints.getAll);
-    };
+    }, [get]);
 
-    const getSaleById = async (id: string) => {
+    const getSaleById = useCallback(async (id: string) => {
         return await get<Sale>(endpoints.getById(id));
-    };
+    }, [get]);
 
-    const createSale = async (sale: CreateSaleRequest) => {
+    const createSale = useCallback(async (sale: CreateSaleRequest) => {
         return await post<CreateSaleRequest, Sale>(endpoints.create, sale);
-    };
+    }, [post]);
 
     return {
         getAllSales,

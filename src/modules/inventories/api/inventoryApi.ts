@@ -1,4 +1,5 @@
 import { useHttpClient } from "@/config/httpClient";
+import { useCallback } from "react";
 import type { Inventory, InventoryAdjustRequest } from "../models/Inventory";
 
 const endpoints = {
@@ -10,17 +11,17 @@ const endpoints = {
 export const useInventoryApi = () => {
     const { get, post } = useHttpClient();
 
-    const getAllInventories = async () => {
+    const getAllInventories = useCallback(async () => {
         return await get<Inventory[]>(endpoints.getAll);
-    };
+    }, [get]);
 
-    const getInventoryByProduct = async (productId: string) => {
+    const getInventoryByProduct = useCallback(async (productId: string) => {
         return await get<Inventory>(endpoints.getByProduct(productId));
-    };
+    }, [get]);
 
-    const adjustInventory = async (request: InventoryAdjustRequest) => {
+    const adjustInventory = useCallback(async (request: InventoryAdjustRequest) => {
         return await post<InventoryAdjustRequest, Inventory>(endpoints.adjust, request);
-    };
+    }, [post]);
 
     return {
         getAllInventories,

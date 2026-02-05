@@ -1,4 +1,5 @@
 import { useHttpClient } from "@/config/httpClient";
+import { useCallback } from "react";
 import type { Product, CreateProductRequest, UpdateProductRequest } from "./models/Product";
 
 
@@ -13,26 +14,26 @@ const endpoints = {
 export const useProductApi = () => {
     const { get, post, put, remove } = useHttpClient();
 
-    const getAllProducts = async () => {
+    const getAllProducts = useCallback(async () => {
         return await get<Product[]>(endpoints.getAll);
-    };
+    }, [get]);
 
-    const getProductById = async (id: string) => {
+    const getProductById = useCallback(async (id: string) => {
         return await get<Product>(endpoints.getById(id));
-    };
+    }, [get]);
 
-    const createProduct = async (product: CreateProductRequest) => {
+    const createProduct = useCallback(async (product: CreateProductRequest) => {
         return await post<CreateProductRequest, Product>(endpoints.create, product);
-    };
+    }, [post]);
 
-    const updateProduct = async (product: UpdateProductRequest) => {
+    const updateProduct = useCallback(async (product: UpdateProductRequest) => {
         const { id, ...data } = product;
         return await put<Omit<UpdateProductRequest, 'id'>, void>(endpoints.update(id), data);
-    };
+    }, [put]);
 
-    const deleteProduct = async (id: string) => {
+    const deleteProduct = useCallback(async (id: string) => {
         return await remove<void>(endpoints.delete(id));
-    };
+    }, [remove]);
 
     return {
         getAllProducts,

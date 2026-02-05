@@ -1,4 +1,5 @@
 import { useHttpClient } from "@/config/httpClient";
+import { useCallback } from "react";
 import type { User, CreateUserRequest, UpdateUserRequest } from "./models/User";
 
 const endpoints = {
@@ -12,26 +13,26 @@ const endpoints = {
 export const useUserApi = () => {
     const { get, post, put, remove } = useHttpClient();
 
-    const getAllUsers = async () => {
+    const getAllUsers = useCallback(async () => {
         return await get<User[]>(endpoints.getAll);
-    };
+    }, [get]);
 
-    const getUserById = async (id: string) => {
+    const getUserById = useCallback(async (id: string) => {
         return await get<User>(endpoints.getById(id));
-    };
+    }, [get]);
 
-    const createUser = async (user: CreateUserRequest) => {
+    const createUser = useCallback(async (user: CreateUserRequest) => {
         return await post<CreateUserRequest, User>(endpoints.create, user);
-    };
+    }, [post]);
 
-    const updateUser = async (user: UpdateUserRequest) => {
+    const updateUser = useCallback(async (user: UpdateUserRequest) => {
         const { id, ...data } = user;
         return await put<Omit<UpdateUserRequest, 'id'>, void>(endpoints.update(id), data);
-    };
+    }, [put]);
 
-    const deleteUser = async (id: string) => {
+    const deleteUser = useCallback(async (id: string) => {
         return await remove<void>(endpoints.delete(id));
-    };
+    }, [remove]);
 
     return {
         getAllUsers,
