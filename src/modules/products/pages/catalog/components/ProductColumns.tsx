@@ -22,6 +22,11 @@ export const getProductColumns = ({ onEdit, onDelete }: ActionsProps): Column<Pr
         accessorKey: "barcode",
     },
     {
+        header: "Unit Price",
+        accessorKey: "unitPrice",
+        cell: (product) => `$${product.unitPrice.toFixed(2)}`,
+    },
+    {
         header: "",
         className: "text-right",
         cell: (product) => (

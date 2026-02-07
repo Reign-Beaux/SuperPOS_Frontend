@@ -109,14 +109,16 @@ export const useCatalogHandler = () => {
                     id: selectedProduct.id,
                     name: values.name,
                     description: values.description ?? "",
-                    barcode: values.barcode
+                    barcode: values.barcode,
+                    unitPrice: values.unitPrice
                 };
                 await updateMutation.mutateAsync(updateRequest);
             } else {
                 const createRequest: CreateProductRequest = {
                     name: values.name,
                     description: values.description ?? "",
-                    barcode: values.barcode
+                    barcode: values.barcode,
+                    unitPrice: values.unitPrice
                 };
                 await createMutation.mutateAsync(createRequest);
             }

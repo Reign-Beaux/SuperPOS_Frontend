@@ -23,6 +23,7 @@ export const ProductForm = ({ initialData, onSubmit, onCancel, isLoading }: Prod
             name: "",
             description: "",
             barcode: "",
+            unitPrice: 0,
         },
     });
 
@@ -85,6 +86,35 @@ export const ProductForm = ({ initialData, onSubmit, onCancel, isLoading }: Prod
                 />
                 {errors.barcode && (
                     <p className="text-sm text-red-500">{errors.barcode.message}</p>
+                )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Unit Price
+                </label>
+                <Controller
+                    control={control}
+                    name="unitPrice"
+                    render={({ field: { onChange, ...field } }) => (
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                $
+                            </span>
+                            <Input
+                                {...field}
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                onChange={(e) => onChange(e.target.valueAsNumber)}
+                                className={`pl-7 text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${errors.unitPrice ? "border-red-500" : ""}`}
+                            />
+                        </div>
+                    )}
+                />
+                {errors.unitPrice && (
+                    <p className="text-sm text-red-500">{errors.unitPrice.message}</p>
                 )}
             </div>
 

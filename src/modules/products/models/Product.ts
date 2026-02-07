@@ -3,12 +3,14 @@ export interface Product {
     name: string;
     description: string;
     barcode: string;
+    unitPrice: number;
 }
 
 export interface CreateProductRequest {
     name: string;
     description: string;
     barcode: string;
+    unitPrice: number;
 }
 
 export interface UpdateProductRequest {
@@ -16,4 +18,5 @@ export interface UpdateProductRequest {
     name: string;
     description: string;
     barcode: string;
+    unitPrice: number;
 }

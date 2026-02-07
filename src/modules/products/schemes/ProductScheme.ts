@@ -4,6 +4,7 @@ export const productSchema = z.object({
     name: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
     description: z.string().max(250, "Description must be less than 250 characters").optional(),
     barcode: z.string().min(1, "Barcode is required").max(50, "Barcode must be less than 50 characters"),
+    unitPrice: z.number().min(0.01, "Unit price must be greater than 0"),
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>;
