@@ -2,13 +2,15 @@ export interface Inventory {
     id: string;
     productId: string;
     productName: string;
-    quantity: number;
+    productDescription?: string;
+    barcode?: string;
+    stock: number;
     createdAt: string;
     updatedAt: string;
 }
 
 export interface InventoryAdjustRequest {
     productId: string;
-    quantity: number;
-    operation: 'Add' | 'Set';
+    stock: number;
+    operation: 0 | 1 | 2; // 0 = Add, 1 = Set, 2 = Remove
 }

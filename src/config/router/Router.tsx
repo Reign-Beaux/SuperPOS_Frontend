@@ -7,6 +7,7 @@ import CustomerCatalog from "@/modules/customers/pages/catalog/CustomerCatalog";
 import RoleCatalog from "@/modules/roles/pages/catalog/RoleCatalog";
 import SalesHistory from "@/modules/sales/pages/SalesHistory";
 import POS from "@/modules/sales/pages/POS";
+import InventoryPage from "@/modules/inventories/pages/InventoryPage";
 
 const routes = [
     {
@@ -38,6 +39,10 @@ const routes = [
             {
                 path: Routes.POS,
                 element: <POS />,
+            },
+            {
+                path: Routes.Inventory,
+                element: <InventoryPage />,
             },
         ],
     },

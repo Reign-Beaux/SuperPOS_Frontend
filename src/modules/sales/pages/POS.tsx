@@ -11,6 +11,7 @@ import { useSaleApi } from "@/modules/sales/api/saleApi";
 import { useUserApi } from "@/modules/users/userApi";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface CartItem {
     product: Product;
@@ -20,7 +21,7 @@ interface CartItem {
 
 const POS = () => {
     const navigate = useNavigate();
-    const { getAllProducts } = useProductApi();
+    const { searchProducts } = useProductApi();
     const { searchCustomers } = useCustomerApi();
     const { searchUsers } = useUserApi();
     const { createSale } = useSaleApi();
@@ -36,22 +37,36 @@ const POS = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Server-side search effect
     useEffect(() => {
-        const loadData = async () => {
-            setIsLoading(true);
-            try {
-                const [productsData] = await Promise.all([
-                    getAllProducts(),
-                ]);
-                setProducts(productsData);
-            } catch (error) {
-                console.error("Failed to load POS data", error);
-            } finally {
-                setIsLoading(false);
+        const timer = setTimeout(async () => {
+            if (searchTerm.length >= 3) {
+                setIsLoading(true);
+                try {
+                    const results = await searchProducts(searchTerm);
+
+                    // Check for exact barcode match
+                    const exactMatch = results.find(p => p.barcode === searchTerm);
+                    if (exactMatch) {
+                        addToCart(exactMatch);
+                        setSearchTerm('');
+                        setProducts([]);
+                    } else {
+                        setProducts(results);
+                    }
+                } catch (error) {
+                    console.error("Failed to search products", error);
+                    setProducts([]);
+                } finally {
+                    setIsLoading(false);
+                }
+            } else {
+                setProducts([]);
             }
-        };
-        loadData();
-    }, []);
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timer);
+    }, [searchTerm, searchProducts]);
 
     const handleSearchCustomers = useCallback(async (term: string) => {
         try {
@@ -83,7 +98,7 @@ const POS = () => {
                 const existing = prev.find(item => item.product.id === product.id);
                 if (existing) {
                     if (existing.quantity + 1 > stock) {
-                        alert(`Not enough stock for ${product.name}. Available: ${stock}`);
+                        toast.error(`Not enough stock for ${product.name}. Available: ${stock}`);
                         return prev;
                     }
                     return prev.map(item =>
@@ -93,14 +108,14 @@ const POS = () => {
                     );
                 }
                 if (stock < 1) {
-                    alert(`Not enough stock for ${product.name}. Available: ${stock}`);
+                    toast.error(`Not enough stock for ${product.name}. Available: ${stock}`);
                     return prev;
                 }
                 return [...prev, { product, quantity: 1, stock }];
             });
         } catch (error) {
             console.error("Failed to check inventory", error);
-            alert("Could not check inventory. Please try again.");
+            toast.error("Could not check inventory. Please try again.");
         }
     };
 
@@ -113,7 +128,7 @@ const POS = () => {
         setCart(prev => prev.map(item => {
             if (item.product.id === productId) {
                 if (quantity > item.stock) {
-                    alert(`Not enough stock. Available: ${item.stock}`);
+                    toast.error(`Not enough stock. Available: ${item.stock}`);
                     return item;
                 }
                 return { ...item, quantity };
@@ -124,7 +139,7 @@ const POS = () => {
 
     const handleCheckout = async () => {
         if (!selectedCustomerId || !selectedUserId || cart.length === 0) {
-            alert("Please select customer, user and add items to cart.");
+            toast.warning("Please select customer, user and add items to cart.");
             return;
         }
 
@@ -138,21 +153,18 @@ const POS = () => {
                     quantity: item.quantity
                 }))
             });
-            alert("Sale created successfully!");
+            toast.success("Sale created successfully!");
             navigate("/sales");
         } catch (error: any) {
             // Handle 409 Conflict (Stock) specially if possible, but global handler might catch it or axios
             console.error("Failed to create sale", error);
-            alert("Failed to create sale. See console.");
+            toast.error("Failed to create sale. See console.");
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const filteredProducts = products.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.barcode && p.barcode.includes(searchTerm))
-    );
+    // Client-side filtering removed in favor of server-side search
 
     const total = cart.reduce((sum, item) => sum + (item.product.unitPrice * item.quantity), 0);
 
@@ -176,7 +188,7 @@ const POS = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && searchTerm.trim()) {
-                                const product = filteredProducts[0];
+                                const product = products[0];
                                 if (product) {
                                     addToCart(product);
                                     setSearchTerm('');
@@ -184,6 +196,30 @@ const POS = () => {
                             }
                         }}
                     />
+
+                    {/* Filtered Products List */}
+                    {searchTerm && products.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-popover text-popover-foreground shadow-md rounded-md border p-1 max-h-60 overflow-y-auto">
+                            {products.slice(0, 10).map(product => (
+                                <div
+                                    key={product.id}
+                                    className="flex items-center justify-between p-2 hover:bg-muted cursor-pointer rounded-sm"
+                                    onClick={() => {
+                                        addToCart(product);
+                                        setSearchTerm('');
+                                    }}
+                                >
+                                    <div>
+                                        <div className="font-medium text-sm">{product.name}</div>
+                                        <div className="text-xs text-muted-foreground">{product.barcode}</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="font-medium text-sm">${product.unitPrice.toFixed(2)}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Cart Items as Rows */}
                     <div className="flex-1 overflow-y-auto space-y-2">

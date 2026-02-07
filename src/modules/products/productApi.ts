@@ -9,6 +9,7 @@ const endpoints = {
     create: "Product",
     update: (id: string) => `Product/${id}`,
     delete: (id: string) => `Product/${id}`,
+    search: (term: string) => `Product/Search?term=${term}`,
 };
 
 export const useProductApi = () => {
@@ -34,11 +35,16 @@ export const useProductApi = () => {
         return await remove<void>(endpoints.delete(id));
     }, [remove]);
 
+    const searchProducts = useCallback(async (term: string) => {
+        return await get<Product[]>(endpoints.search(term));
+    }, [get]);
+
     return {
         getAllProducts,
         getProductById,
         createProduct,
         updateProduct,
         deleteProduct,
+        searchProducts,
     };
 };
