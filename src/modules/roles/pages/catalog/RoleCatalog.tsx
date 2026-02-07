@@ -1,13 +1,15 @@
 import { Button } from "@/components/elements/button";
 import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
 import { DataTable } from "@/components/widgets/DataTable";
-import { FormSheet } from "@/components/widgets/FormSheet";
 import { PageHeader } from "@/components/widgets/PageHeader";
 import { TableToolbar } from "@/components/widgets/TableToolbar";
-import { useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { getRoleColumns } from "./components/RoleColumns";
-import { RoleForm } from "./components/RoleForm";
 import { useRoleCatalogHandler } from "./roleCatalogHandler";
+
+// Lazy load heavy components
+const FormSheet = lazy(() => import("@/components/widgets/FormSheet").then(m => ({ default: m.FormSheet })));
+const RoleForm = lazy(() => import("./components/RoleForm").then(m => ({ default: m.RoleForm })));
 
 const RoleCatalog = () => {
     const {
@@ -27,14 +29,19 @@ const RoleCatalog = () => {
 
     const [searchTerm, setSearchTerm] = useState("");
 
-    const filteredRoles = roles.filter(r =>
-        r.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Memoize filtered roles to prevent re-calculation on every render
+    const filteredRoles = useMemo(() => {
+        const searchLower = searchTerm.toLowerCase();
+        return roles.filter(r =>
+            r.name.toLowerCase().includes(searchLower)
+        );
+    }, [roles, searchTerm]);
 
-    const columns = getRoleColumns({
+    // Memoize columns to prevent recreation on every render
+    const columns = useMemo(() => getRoleColumns({
         onEdit: handleEdit,
         onDelete: handleDeleteClick
-    });
+    }), [handleEdit, handleDeleteClick]);
 
     return (
         <div className="container mx-auto py-10 space-y-6">
@@ -57,18 +64,21 @@ const RoleCatalog = () => {
                 )}
             </div>
 
-            <FormSheet
-                title={selectedRole ? "Edit Role" : "Create Role"}
-                isOpen={isSheetOpen}
-                onClose={() => setIsSheetOpen(false)}
-            >
-                <RoleForm
-                    initialData={selectedRole ? { ...selectedRole, id: selectedRole.id } : undefined}
-                    onSubmit={handleSubmit}
-                    onCancel={() => setIsSheetOpen(false)}
-                    isLoading={isLoading}
-                />
-            </FormSheet >
+            <Suspense fallback={<div className="p-4">Loading...</div>}>
+                <FormSheet
+                    title={selectedRole ? "Edit Role" : "Create Role"}
+                    isOpen={isSheetOpen}
+                    onClose={() => setIsSheetOpen(false)}
+                >
+                    <RoleForm
+                        key={selectedRole?.id || 'new'}
+                        initialData={selectedRole ? { ...selectedRole, id: selectedRole.id } : undefined}
+                        onSubmit={handleSubmit}
+                        onCancel={() => setIsSheetOpen(false)}
+                        isLoading={isLoading}
+                    />
+                </FormSheet>
+            </Suspense>
 
             <ConfirmDialog
                 open={isDeleteConfirmOpen}

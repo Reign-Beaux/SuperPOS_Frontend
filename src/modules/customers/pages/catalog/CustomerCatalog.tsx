@@ -1,13 +1,15 @@
 import { Button } from "@/components/elements/button";
 import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
 import { DataTable } from "@/components/widgets/DataTable";
-import { FormSheet } from "@/components/widgets/FormSheet";
 import { PageHeader } from "@/components/widgets/PageHeader";
 import { TableToolbar } from "@/components/widgets/TableToolbar";
-import { useState, useMemo } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { getCustomerColumns } from "./components/CustomerColumns";
-import { CustomerForm } from "./components/CustomerForm";
 import { useCustomerCatalogHandler } from "./customerCatalogHandler";
+
+// Lazy load heavy components
+const FormSheet = lazy(() => import("@/components/widgets/FormSheet").then(m => ({ default: m.FormSheet })));
+const CustomerForm = lazy(() => import("./components/CustomerForm").then(m => ({ default: m.CustomerForm })));
 
 const CustomerCatalog = () => {
     const {
@@ -64,19 +66,21 @@ const CustomerCatalog = () => {
                 )}
             </div>
 
-            <FormSheet
-                title={selectedCustomer ? "Edit Customer" : "Create Customer"}
-                isOpen={isSheetOpen}
-                onClose={() => setIsSheetOpen(false)}
-            >
-                <CustomerForm
-                    key={selectedCustomer?.id || 'new'}
-                    initialData={selectedCustomer ? { ...selectedCustomer, id: selectedCustomer.id } : undefined}
-                    onSubmit={handleSubmit}
-                    onCancel={() => setIsSheetOpen(false)}
-                    isLoading={isLoading}
-                />
-            </FormSheet>
+            <Suspense fallback={<div className="p-4">Loading...</div>}>
+                <FormSheet
+                    title={selectedCustomer ? "Edit Customer" : "Create Customer"}
+                    isOpen={isSheetOpen}
+                    onClose={() => setIsSheetOpen(false)}
+                >
+                    <CustomerForm
+                        key={selectedCustomer?.id || 'new'}
+                        initialData={selectedCustomer ? { ...selectedCustomer, id: selectedCustomer.id } : undefined}
+                        onSubmit={handleSubmit}
+                        onCancel={() => setIsSheetOpen(false)}
+                        isLoading={isLoading}
+                    />
+                </FormSheet>
+            </Suspense>
 
             <ConfirmDialog
                 open={isDeleteConfirmOpen}

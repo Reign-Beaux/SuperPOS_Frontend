@@ -1,13 +1,15 @@
 import { Button } from "@/components/elements/button";
 import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
 import { DataTable } from "@/components/widgets/DataTable";
-import { FormSheet } from "@/components/widgets/FormSheet";
 import { PageHeader } from "@/components/widgets/PageHeader";
 import { TableToolbar } from "@/components/widgets/TableToolbar";
-import { useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { getUserColumns } from "./components/UserColumns";
-import { UserForm } from "./components/UserForm";
 import { useCatalogHandler } from "./userCatalogHandler";
+
+// Lazy load heavy components
+const FormSheet = lazy(() => import("@/components/widgets/FormSheet").then(m => ({ default: m.FormSheet })));
+const UserForm = lazy(() => import("./components/UserForm").then(m => ({ default: m.UserForm })));
 
 const UserCatalog = () => {
     const {
@@ -27,17 +29,22 @@ const UserCatalog = () => {
 
     const [searchTerm, setSearchTerm] = useState("");
 
-    const filteredUsers = users.filter(u =>
-        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.firstLastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Memoize filtered users to prevent re-calculation on every render
+    const filteredUsers = useMemo(() => {
+        const searchLower = searchTerm.toLowerCase();
+        return users.filter(u =>
+            u.name.toLowerCase().includes(searchLower) ||
+            u.firstLastname.toLowerCase().includes(searchLower) ||
+            u.email.toLowerCase().includes(searchLower)
+        );
+    }, [users, searchTerm]);
 
-    const columns = getUserColumns({
+    // Memoize columns to prevent recreation on every render
+    const columns = useMemo(() => getUserColumns({
         user: {} as any,
         onEdit: handleEdit,
         onDelete: handleDeleteClick
-    });
+    }), [handleEdit, handleDeleteClick]);
 
     return (
         <div className="container mx-auto py-10 space-y-6">
@@ -60,27 +67,30 @@ const UserCatalog = () => {
                 )}
             </div>
 
-            <FormSheet
-                title={selectedUser ? "Edit User" : "Create User"}
-                description={selectedUser ? "Update the user's details below." : "Enter the details for the new user."}
-                isOpen={isSheetOpen}
-                onClose={() => setIsSheetOpen(false)}
-            >
-                <UserForm
-                    initialData={selectedUser ? {
-                        id: selectedUser.id,
-                        name: selectedUser.name,
-                        firstLastname: selectedUser.firstLastname,
-                        secondLastname: selectedUser.secondLastname,
-                        email: selectedUser.email,
-                        phone: selectedUser.phone,
-                        roleId: selectedUser.role?.id || ""
-                    } : undefined}
-                    onSubmit={handleSubmit}
-                    onCancel={() => setIsSheetOpen(false)}
-                    isLoading={isLoading}
-                />
-            </FormSheet>
+            <Suspense fallback={<div className="p-4">Loading...</div>}>
+                <FormSheet
+                    title={selectedUser ? "Edit User" : "Create User"}
+                    description={selectedUser ? "Update the user's details below." : "Enter the details for the new user."}
+                    isOpen={isSheetOpen}
+                    onClose={() => setIsSheetOpen(false)}
+                >
+                    <UserForm
+                        key={selectedUser?.id || 'new'}
+                        initialData={selectedUser ? {
+                            id: selectedUser.id,
+                            name: selectedUser.name,
+                            firstLastname: selectedUser.firstLastname,
+                            secondLastname: selectedUser.secondLastname,
+                            email: selectedUser.email,
+                            phone: selectedUser.phone,
+                            roleId: selectedUser.role?.id || ""
+                        } : undefined}
+                        onSubmit={handleSubmit}
+                        onCancel={() => setIsSheetOpen(false)}
+                        isLoading={isLoading}
+                    />
+                </FormSheet>
+            </Suspense>
 
             <ConfirmDialog
                 open={isDeleteConfirmOpen}
