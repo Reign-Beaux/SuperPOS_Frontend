@@ -1,30 +1,67 @@
 import type { CreateUserRequest, UpdateUserRequest, User } from "@/modules/users/models/User";
 import type { UserFormValues } from "@/modules/users/schemes/UserScheme";
 import { useUserApi } from "@/modules/users/userApi";
-import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+
+const USERS_QUERY_KEY = ['users'];
 
 export const useCatalogHandler = () => {
+    const queryClient = useQueryClient();
     const { getAllUsers, createUser, updateUser, deleteUser } = useUserApi();
 
-    const [users, setUsers] = useState<User[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
-    const loadUsers = async () => {
-        setIsLoading(true);
-        try {
-            const data = await getAllUsers();
-            setUsers(data);
-        } catch (error) {
-            if (error instanceof Error && error.message === "Request cancelled") return;
-            console.error("Failed to load users", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // Query for fetching all users
+    const {
+        data: users = [],
+        isLoading
+    } = useQuery({
+        queryKey: USERS_QUERY_KEY,
+        queryFn: getAllUsers,
+    });
+
+    // Mutation for creating users
+    const createMutation = useMutation({
+        mutationFn: createUser,
+        onSuccess: (newUser) => {
+            queryClient.setQueryData<User[]>(USERS_QUERY_KEY, (old = []) => [...old, newUser]);
+        },
+    });
+
+    // Mutation for updating users
+    const updateMutation = useMutation({
+        mutationFn: updateUser,
+        onSuccess: (_, variables) => {
+            queryClient.setQueryData<User[]>(USERS_QUERY_KEY, (old = []) =>
+                old.map(u => u.id === variables.id ? { ...u, ...variables } : u)
+            );
+        },
+    });
+
+    // Mutation for deleting users
+    const deleteMutation = useMutation({
+        mutationFn: deleteUser,
+        onMutate: async (userId) => {
+            await queryClient.cancelQueries({ queryKey: USERS_QUERY_KEY });
+            const previousUsers = queryClient.getQueryData<User[]>(USERS_QUERY_KEY);
+            queryClient.setQueryData<User[]>(USERS_QUERY_KEY, (old = []) =>
+                old.filter(u => u.id !== userId)
+            );
+            return { previousUsers };
+        },
+        onError: (_err, _userId, context) => {
+            if (context?.previousUsers) {
+                queryClient.setQueryData(USERS_QUERY_KEY, context.previousUsers);
+            }
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
+        },
+    });
 
     const handleCreate = () => {
         setSelectedUser(null);
@@ -44,25 +81,18 @@ export const useCatalogHandler = () => {
     const handleConfirmDelete = async () => {
         if (!userToDelete) return;
 
-        // Optimistic update: Update UI immediately
-        const previousUsers = users;
-        setUsers(prev => prev.filter(u => u.id !== userToDelete));
         setIsDeleteConfirmOpen(false);
         const deletedId = userToDelete;
         setUserToDelete(null);
 
         try {
-            await deleteUser(deletedId);
-            // Success - no need to reload, UI already updated
+            await deleteMutation.mutateAsync(deletedId);
         } catch (error) {
             console.error("Failed to delete user", error);
-            // Revert on error
-            setUsers(previousUsers);
         }
     };
 
     const handleSubmit = async (values: UserFormValues) => {
-        setIsLoading(true);
         try {
             if (selectedUser) {
                 const updateRequest: UpdateUserRequest = {
@@ -75,13 +105,7 @@ export const useCatalogHandler = () => {
                     roleId: values.roleId,
                     password: values.password || undefined
                 };
-                await updateUser(updateRequest);
-                // Update local state instead of reloading
-                setUsers(prev => prev.map(u =>
-                    u.id === selectedUser.id
-                        ? { ...u, ...updateRequest }
-                        : u
-                ));
+                await updateMutation.mutateAsync(updateRequest);
             } else {
                 const createRequest: CreateUserRequest = {
                     name: values.name,
@@ -92,27 +116,17 @@ export const useCatalogHandler = () => {
                     roleId: values.roleId,
                     password: values.password || ""
                 };
-                const newUser = await createUser(createRequest);
-                // Add to local state
-                setUsers(prev => [...prev, newUser]);
+                await createMutation.mutateAsync(createRequest);
             }
             setIsSheetOpen(false);
         } catch (error) {
             console.error("Failed to save user", error);
-            // On error, reload to ensure consistency
-            await loadUsers();
-        } finally {
-            setIsLoading(false);
         }
     };
 
-    useEffect(() => {
-        loadUsers();
-    }, []);
-
     return {
         users,
-        isLoading,
+        isLoading: isLoading || createMutation.isPending || updateMutation.isPending,
         isSheetOpen,
         selectedUser,
         isDeleteConfirmOpen,

@@ -1,30 +1,77 @@
 import type { CreateProductRequest, Product, UpdateProductRequest } from "@/modules/products/models/Product";
 import { useProductApi } from "@/modules/products/productApi";
 import type { ProductFormValues } from "@/modules/products/schemes/ProductScheme";
-import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+
+const PRODUCTS_QUERY_KEY = ['products'];
 
 export const useCatalogHandler = () => {
+    const queryClient = useQueryClient();
     const { getAllProducts, createProduct, updateProduct, deleteProduct } = useProductApi();
 
-    const [products, setProducts] = useState<Product[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
-    const loadProducts = async () => {
-        setIsLoading(true);
-        try {
-            const data = await getAllProducts();
-            setProducts(data);
-        } catch (error) {
-            if (error instanceof Error && error.message === "Request cancelled") return;
-            console.error("Failed to load products", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // Query for fetching all products
+    const {
+        data: products = [],
+        isLoading
+    } = useQuery({
+        queryKey: PRODUCTS_QUERY_KEY,
+        queryFn: getAllProducts,
+    });
+
+    // Mutation for creating products
+    const createMutation = useMutation({
+        mutationFn: createProduct,
+        onSuccess: (newProduct) => {
+            // Optimistic update: Add new product to cache
+            queryClient.setQueryData<Product[]>(PRODUCTS_QUERY_KEY, (old = []) => [...old, newProduct]);
+        },
+    });
+
+    // Mutation for updating products
+    const updateMutation = useMutation({
+        mutationFn: updateProduct,
+        onSuccess: (_, variables) => {
+            // Optimistic update: Update product in cache
+            queryClient.setQueryData<Product[]>(PRODUCTS_QUERY_KEY, (old = []) =>
+                old.map(p => p.id === variables.id ? { ...p, ...variables } : p)
+            );
+        },
+    });
+
+    // Mutation for deleting products
+    const deleteMutation = useMutation({
+        mutationFn: deleteProduct,
+        onMutate: async (productId) => {
+            // Cancel outgoing refetches
+            await queryClient.cancelQueries({ queryKey: PRODUCTS_QUERY_KEY });
+
+            // Snapshot previous value
+            const previousProducts = queryClient.getQueryData<Product[]>(PRODUCTS_QUERY_KEY);
+
+            // Optimistically update cache
+            queryClient.setQueryData<Product[]>(PRODUCTS_QUERY_KEY, (old = []) =>
+                old.filter(p => p.id !== productId)
+            );
+
+            return { previousProducts };
+        },
+        onError: (_err, _productId, context) => {
+            // Revert on error
+            if (context?.previousProducts) {
+                queryClient.setQueryData(PRODUCTS_QUERY_KEY, context.previousProducts);
+            }
+        },
+        onSettled: () => {
+            // Refetch to ensure consistency
+            queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY });
+        },
+    });
 
     const handleCreate = () => {
         setSelectedProduct(null);
@@ -44,25 +91,18 @@ export const useCatalogHandler = () => {
     const handleConfirmDelete = async () => {
         if (!productToDelete) return;
 
-        // Optimistic update: Update UI immediately
-        const previousProducts = products;
-        setProducts(prev => prev.filter(p => p.id !== productToDelete));
         setIsDeleteConfirmOpen(false);
         const deletedId = productToDelete;
         setProductToDelete(null);
 
         try {
-            await deleteProduct(deletedId);
-            // Success - no need to reload, UI already updated
+            await deleteMutation.mutateAsync(deletedId);
         } catch (error) {
             console.error("Failed to delete product", error);
-            // Revert on error
-            setProducts(previousProducts);
         }
     };
 
     const handleSubmit = async (values: ProductFormValues) => {
-        setIsLoading(true);
         try {
             if (selectedProduct) {
                 const updateRequest: UpdateProductRequest = {
@@ -71,40 +111,24 @@ export const useCatalogHandler = () => {
                     description: values.description ?? "",
                     barcode: values.barcode
                 };
-                await updateProduct(updateRequest);
-                // Update local state instead of reloading
-                setProducts(prev => prev.map(p =>
-                    p.id === selectedProduct.id
-                        ? { ...p, ...updateRequest }
-                        : p
-                ));
+                await updateMutation.mutateAsync(updateRequest);
             } else {
                 const createRequest: CreateProductRequest = {
                     name: values.name,
                     description: values.description ?? "",
                     barcode: values.barcode
                 };
-                const newProduct = await createProduct(createRequest);
-                // Add to local state
-                setProducts(prev => [...prev, newProduct]);
+                await createMutation.mutateAsync(createRequest);
             }
             setIsSheetOpen(false);
         } catch (error) {
             console.error("Failed to save product", error);
-            // On error, reload to ensure consistency
-            await loadProducts();
-        } finally {
-            setIsLoading(false);
         }
     };
 
-    useEffect(() => {
-        loadProducts();
-    }, []);
-
     return {
         products,
-        isLoading,
+        isLoading: isLoading || createMutation.isPending || updateMutation.isPending,
         isSheetOpen,
         selectedProduct,
         isDeleteConfirmOpen,

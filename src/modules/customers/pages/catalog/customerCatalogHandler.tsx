@@ -1,30 +1,67 @@
 import { useCustomerApi } from "@/modules/customers/api/customerApi";
-import type { Customer, CreateCustomerRequest, UpdateCustomerRequest } from "@/modules/customers/models/Customer";
+import type { CreateCustomerRequest, Customer, UpdateCustomerRequest } from "@/modules/customers/models/Customer";
 import type { CustomerFormValues } from "@/modules/customers/schemes/CustomerScheme";
-import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+
+const CUSTOMERS_QUERY_KEY = ['customers'];
 
 export const useCustomerCatalogHandler = () => {
+    const queryClient = useQueryClient();
     const { getAllCustomers, createCustomer, updateCustomer, deleteCustomer } = useCustomerApi();
 
-    const [customers, setCustomers] = useState<Customer[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [customerToDelete, setCustomerToDelete] = useState<string | null>(null);
 
-    const loadCustomers = async () => {
-        setIsLoading(true);
-        try {
-            const data = await getAllCustomers();
-            setCustomers(data);
-        } catch (error) {
-            if (error instanceof Error && error.message === "Request cancelled") return;
-            console.error("Failed to load customers", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // Query for fetching all customers
+    const {
+        data: customers = [],
+        isLoading
+    } = useQuery({
+        queryKey: CUSTOMERS_QUERY_KEY,
+        queryFn: getAllCustomers,
+    });
+
+    // Mutation for creating customers
+    const createMutation = useMutation({
+        mutationFn: createCustomer,
+        onSuccess: (newCustomer) => {
+            queryClient.setQueryData<Customer[]>(CUSTOMERS_QUERY_KEY, (old = []) => [...old, newCustomer]);
+        },
+    });
+
+    // Mutation for updating customers
+    const updateMutation = useMutation({
+        mutationFn: updateCustomer,
+        onSuccess: (_, variables) => {
+            queryClient.setQueryData<Customer[]>(CUSTOMERS_QUERY_KEY, (old = []) =>
+                old.map(c => c.id === variables.id ? { ...c, ...variables } : c)
+            );
+        },
+    });
+
+    // Mutation for deleting customers
+    const deleteMutation = useMutation({
+        mutationFn: deleteCustomer,
+        onMutate: async (customerId) => {
+            await queryClient.cancelQueries({ queryKey: CUSTOMERS_QUERY_KEY });
+            const previousCustomers = queryClient.getQueryData<Customer[]>(CUSTOMERS_QUERY_KEY);
+            queryClient.setQueryData<Customer[]>(CUSTOMERS_QUERY_KEY, (old = []) =>
+                old.filter(c => c.id !== customerId)
+            );
+            return { previousCustomers };
+        },
+        onError: (_err, _customerId, context) => {
+            if (context?.previousCustomers) {
+                queryClient.setQueryData(CUSTOMERS_QUERY_KEY, context.previousCustomers);
+            }
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: CUSTOMERS_QUERY_KEY });
+        },
+    });
 
     const handleCreate = () => {
         setSelectedCustomer(null);
@@ -44,25 +81,18 @@ export const useCustomerCatalogHandler = () => {
     const handleConfirmDelete = async () => {
         if (!customerToDelete) return;
 
-        // Optimistic update: Update UI immediately
-        const previousCustomers = customers;
-        setCustomers(prev => prev.filter(c => c.id !== customerToDelete));
         setIsDeleteConfirmOpen(false);
         const deletedId = customerToDelete;
         setCustomerToDelete(null);
 
         try {
-            await deleteCustomer(deletedId);
-            // Success - no need to reload, UI already updated
+            await deleteMutation.mutateAsync(deletedId);
         } catch (error) {
             console.error("Failed to delete customer", error);
-            // Revert on error
-            setCustomers(previousCustomers);
         }
     };
 
     const handleSubmit = async (values: CustomerFormValues) => {
-        setIsLoading(true);
         try {
             if (selectedCustomer) {
                 const updateRequest: UpdateCustomerRequest = {
@@ -74,13 +104,7 @@ export const useCustomerCatalogHandler = () => {
                     phone: values.phone,
                     birthDate: values.birthDate ? new Date(values.birthDate).toISOString() : undefined
                 };
-                await updateCustomer(updateRequest);
-                // Update local state instead of reloading
-                setCustomers(prev => prev.map(c =>
-                    c.id === selectedCustomer.id
-                        ? { ...c, ...updateRequest }
-                        : c
-                ));
+                await updateMutation.mutateAsync(updateRequest);
             } else {
                 const createRequest: CreateCustomerRequest = {
                     name: values.name,
@@ -90,27 +114,17 @@ export const useCustomerCatalogHandler = () => {
                     phone: values.phone,
                     birthDate: values.birthDate ? new Date(values.birthDate).toISOString() : undefined
                 };
-                const newCustomer = await createCustomer(createRequest);
-                // Add to local state
-                setCustomers(prev => [...prev, newCustomer]);
+                await createMutation.mutateAsync(createRequest);
             }
             setIsSheetOpen(false);
         } catch (error) {
             console.error("Failed to save customer", error);
-            // On error, reload to ensure consistency
-            await loadCustomers();
-        } finally {
-            setIsLoading(false);
         }
     };
 
-    useEffect(() => {
-        loadCustomers();
-    }, []);
-
     return {
         customers,
-        isLoading,
+        isLoading: isLoading || createMutation.isPending || updateMutation.isPending,
         isSheetOpen,
         selectedCustomer,
         isDeleteConfirmOpen,

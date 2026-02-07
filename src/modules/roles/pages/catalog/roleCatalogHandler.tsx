@@ -1,30 +1,67 @@
 import { useRoleApi } from "@/modules/roles/api/roleApi";
 import type { CreateRoleRequest, Role, UpdateRoleRequest } from "@/modules/roles/models/Role";
 import type { RoleFormValues } from "@/modules/roles/schemes/RoleScheme";
-import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+
+const ROLES_QUERY_KEY = ['roles'];
 
 export const useRoleCatalogHandler = () => {
+    const queryClient = useQueryClient();
     const { getAllRoles, createRole, updateRole, deleteRole } = useRoleApi();
 
-    const [roles, setRoles] = useState<Role[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedRole, setSelectedRole] = useState<Role | null>(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [roleToDelete, setRoleToDelete] = useState<string | null>(null);
 
-    const loadRoles = async () => {
-        setIsLoading(true);
-        try {
-            const data = await getAllRoles();
-            setRoles(data);
-        } catch (error) {
-            if (error instanceof Error && error.message === "Request cancelled") return;
-            console.error("Failed to load roles", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // Query for fetching all roles
+    const {
+        data: roles = [],
+        isLoading
+    } = useQuery({
+        queryKey: ROLES_QUERY_KEY,
+        queryFn: getAllRoles,
+    });
+
+    // Mutation for creating roles
+    const createMutation = useMutation({
+        mutationFn: createRole,
+        onSuccess: (newRole) => {
+            queryClient.setQueryData<Role[]>(ROLES_QUERY_KEY, (old = []) => [...old, newRole]);
+        },
+    });
+
+    // Mutation for updating roles
+    const updateMutation = useMutation({
+        mutationFn: updateRole,
+        onSuccess: (_, variables) => {
+            queryClient.setQueryData<Role[]>(ROLES_QUERY_KEY, (old = []) =>
+                old.map(r => r.id === variables.id ? { ...r, ...variables } : r)
+            );
+        },
+    });
+
+    // Mutation for deleting roles
+    const deleteMutation = useMutation({
+        mutationFn: deleteRole,
+        onMutate: async (roleId) => {
+            await queryClient.cancelQueries({ queryKey: ROLES_QUERY_KEY });
+            const previousRoles = queryClient.getQueryData<Role[]>(ROLES_QUERY_KEY);
+            queryClient.setQueryData<Role[]>(ROLES_QUERY_KEY, (old = []) =>
+                old.filter(r => r.id !== roleId)
+            );
+            return { previousRoles };
+        },
+        onError: (_err, _roleId, context) => {
+            if (context?.previousRoles) {
+                queryClient.setQueryData(ROLES_QUERY_KEY, context.previousRoles);
+            }
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEY });
+        },
+    });
 
     const handleCreate = () => {
         setSelectedRole(null);
@@ -44,25 +81,18 @@ export const useRoleCatalogHandler = () => {
     const handleConfirmDelete = async () => {
         if (!roleToDelete) return;
 
-        // Optimistic update: Update UI immediately
-        const previousRoles = roles;
-        setRoles(prev => prev.filter(r => r.id !== roleToDelete));
         setIsDeleteConfirmOpen(false);
         const deletedId = roleToDelete;
         setRoleToDelete(null);
 
         try {
-            await deleteRole(deletedId);
-            // Success - no need to reload, UI already updated
+            await deleteMutation.mutateAsync(deletedId);
         } catch (error) {
             console.error("Failed to delete role", error);
-            // Revert on error
-            setRoles(previousRoles);
         }
     };
 
     const handleSubmit = async (values: RoleFormValues) => {
-        setIsLoading(true);
         try {
             if (selectedRole) {
                 const updateRequest: UpdateRoleRequest = {
@@ -70,39 +100,23 @@ export const useRoleCatalogHandler = () => {
                     name: values.name,
                     description: values.description
                 };
-                await updateRole(updateRequest);
-                // Update local state instead of reloading
-                setRoles(prev => prev.map(r =>
-                    r.id === selectedRole.id
-                        ? { ...r, ...updateRequest }
-                        : r
-                ));
+                await updateMutation.mutateAsync(updateRequest);
             } else {
                 const createRequest: CreateRoleRequest = {
                     name: values.name,
                     description: values.description
                 };
-                const newRole = await createRole(createRequest);
-                // Add to local state
-                setRoles(prev => [...prev, newRole]);
+                await createMutation.mutateAsync(createRequest);
             }
             setIsSheetOpen(false);
         } catch (error) {
             console.error("Failed to save role", error);
-            // On error, reload to ensure consistency
-            await loadRoles();
-        } finally {
-            setIsLoading(false);
         }
     };
 
-    useEffect(() => {
-        loadRoles();
-    }, []);
-
     return {
         roles,
-        isLoading,
+        isLoading: isLoading || createMutation.isPending || updateMutation.isPending,
         isSheetOpen,
         selectedRole,
         isDeleteConfirmOpen,
