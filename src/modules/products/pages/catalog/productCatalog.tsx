@@ -1,13 +1,15 @@
 import { Button } from "@/components/elements/button";
 import { ConfirmDialog } from "@/components/widgets/ConfirmDialog";
 import { DataTable } from "@/components/widgets/DataTable";
-import { FormSheet } from "@/components/widgets/FormSheet";
 import { PageHeader } from "@/components/widgets/PageHeader";
 import { TableToolbar } from "@/components/widgets/TableToolbar";
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { getProductColumns } from "./components/ProductColumns";
-import { ProductForm } from "./components/ProductForm";
 import { useCatalogHandler } from "./productCatalogHandler";
+
+// Lazy load heavy components
+const FormSheet = lazy(() => import("@/components/widgets/FormSheet").then(m => ({ default: m.FormSheet })));
+const ProductForm = lazy(() => import("./components/ProductForm").then(m => ({ default: m.ProductForm })));
 
 const ProductCatalog = () => {
     const {
@@ -64,19 +66,21 @@ const ProductCatalog = () => {
                 )}
             </div>
 
-            <FormSheet
-                title={selectedProduct ? "Edit Product" : "Create Product"}
-                isOpen={isSheetOpen}
-                onClose={() => setIsSheetOpen(false)}
-            >
-                <ProductForm
-                    key={selectedProduct?.id || 'new'}
-                    initialData={selectedProduct ? { ...selectedProduct, id: selectedProduct.id } : undefined}
-                    onSubmit={handleSubmit}
-                    onCancel={() => setIsSheetOpen(false)}
-                    isLoading={isLoading}
-                />
-            </FormSheet>
+            <Suspense fallback={<div className="p-4">Loading...</div>}>
+                <FormSheet
+                    title={selectedProduct ? "Edit Product" : "Create Product"}
+                    isOpen={isSheetOpen}
+                    onClose={() => setIsSheetOpen(false)}
+                >
+                    <ProductForm
+                        key={selectedProduct?.id || 'new'}
+                        initialData={selectedProduct ? { ...selectedProduct, id: selectedProduct.id } : undefined}
+                        onSubmit={handleSubmit}
+                        onCancel={() => setIsSheetOpen(false)}
+                        isLoading={isLoading}
+                    />
+                </FormSheet>
+            </Suspense>
 
             <ConfirmDialog
                 open={isDeleteConfirmOpen}
