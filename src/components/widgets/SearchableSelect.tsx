@@ -1,4 +1,5 @@
-import { Check, ChevronsUpDown } from "lucide-react"
+import { useDebounce } from "@/hooks/useDebounce"
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
 import * as React from "react"
 
 import { Button } from "@/components/elements/button"
@@ -23,30 +24,102 @@ export interface GenericOption {
 }
 
 interface SearchableSelectProps {
-    options: GenericOption[];
+    options?: GenericOption[];
     value?: string;
     onSelect: (value: string) => void;
     placeholder?: string;
     searchPlaceholder?: string;
     emptyMessage?: string;
     className?: string;
+    onSearch?: (term: string) => Promise<GenericOption[]>;
+    debounceTime?: number;
 }
 
 export function SearchableSelect({
-    options,
+    options: initialOptions = [],
     value,
     onSelect,
     placeholder = "Select option...",
     searchPlaceholder = "Search...",
     emptyMessage = "No option found.",
-    className
+    className,
+    onSearch,
+    debounceTime = 500
 }: SearchableSelectProps) {
     const [open, setOpen] = React.useState(false)
+    const [searchTerm, setSearchTerm] = React.useState("")
+    const [internalOptions, setInternalOptions] = React.useState<GenericOption[]>([])
+    const [loading, setLoading] = React.useState(false)
+    const [selectedLabel, setSelectedLabel] = React.useState("")
 
-    const selectedLabel = options.find((option) => option.value === value)?.label
+    // Use external options if provided and onSearch is not used (static mode)
+    // If onSearch is used, use internalOptions (async mode)
+    // However, for async mode, we might need to pre-populate label if value exists but options don't have it yet.
+    // Ideally, the parent passes the initial options or we fetch them. 
+    // For now, let's assume if static options are passed, we use them.
+    const activeOptions = onSearch ? internalOptions : initialOptions;
+
+    // Resolve selected label from value
+    React.useEffect(() => {
+        if (!value) {
+            setSelectedLabel("");
+            return;
+        }
+        // Try to find in current active options
+        const found = activeOptions.find(o => o.value === value);
+        if (found) {
+            setSelectedLabel(found.label);
+        }
+        // If not found in active options (e.g. async search hasn't loaded it), 
+        // we might display the value or need a way to get the label.
+        // For this implementation, we will rely on what we have.
+    }, [value, activeOptions]);
+
+
+    const debouncedSearchTerm = useDebounce(searchTerm, debounceTime)
+
+    React.useEffect(() => {
+        if (!onSearch) return;
+
+        const fetchOptions = async () => {
+            if (debouncedSearchTerm.length < 3) {
+                setInternalOptions([]);
+                return;
+            }
+
+            setLoading(true);
+            try {
+                const results = await onSearch(debouncedSearchTerm);
+                setInternalOptions(results);
+            } catch (error) {
+                console.error("Search failed", error);
+                setInternalOptions([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchOptions();
+    }, [debouncedSearchTerm, onSearch]);
+
+    const handleSelect = (currentValue: string, label: string) => {
+        onSelect(currentValue === value ? "" : currentValue)
+        setSelectedLabel(label)
+        setOpen(false)
+    }
+
+    const handleOpenChange = (newOpen: boolean) => {
+        setOpen(newOpen);
+        if (!newOpen) {
+            setSearchTerm("");
+            if (onSearch) {
+                setInternalOptions([]);
+            }
+        }
+    }
 
     return (
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover open={open} onOpenChange={handleOpenChange}>
             <PopoverTrigger asChild>
                 <Button
                     variant="outline"
@@ -54,27 +127,42 @@ export function SearchableSelect({
                     aria-expanded={open}
                     className={cn("w-full justify-between", !value && "text-muted-foreground", className)}
                 >
-                    {value ? selectedLabel : placeholder}
+                    {selectedLabel || placeholder}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                <Command>
-                    <CommandInput placeholder={searchPlaceholder} />
+                <Command
+                    shouldFilter={!onSearch}
+                    filter={onSearch ? () => 1 : undefined}
+                >
+                    <CommandInput
+                        placeholder={searchPlaceholder}
+                        value={searchTerm}
+                        onValueChange={setSearchTerm}
+                        autoComplete="off"
+                    />
                     <CommandList>
-                        <CommandEmpty>{emptyMessage}</CommandEmpty>
+                        {loading && (
+                            <div className="py-6 text-center text-sm flex items-center justify-center gap-2 text-muted-foreground">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Searching...
+                            </div>
+                        )}
+                        {!loading && activeOptions.length === 0 && (
+                            <CommandEmpty>
+                                {onSearch && searchTerm.length < 3
+                                    ? "Type at least 3 characters..."
+                                    : emptyMessage}
+                            </CommandEmpty>
+                        )}
                         <CommandGroup>
-                            {options.map((option) => (
+                            {activeOptions.map((option) => (
                                 <CommandItem
                                     key={option.value}
-                                    value={option.label} // Command filters by value (which is label here used for display text)
-                                    onSelect={(_currentValue) => {
-                                        // We find the option that matches the label (currentValue) because CommandItem value is label
-                                        // Wait, better to use option.value as value if possible but Command usually filters by text content.
-                                        // A safe pattern:
-                                        onSelect(option.value === value ? "" : option.value)
-                                        setOpen(false)
-                                    }}
+                                    value={`${option.label}__${option.value}`}
+                                    onSelect={() => handleSelect(option.value, option.label)}
+                                    className="data-[disabled]:pointer-events-auto data-[disabled]:opacity-100"
                                 >
                                     <Check
                                         className={cn(
@@ -92,3 +180,4 @@ export function SearchableSelect({
         </Popover>
     )
 }
+

@@ -100,7 +100,42 @@ GET /api/customer
 
 ---
 
-### 4. Actualizar Cliente
+### 4. Buscar Clientes
+```
+GET /api/customer/search?term={term}
+```
+
+**Parámetros:**
+- `term` (string, query, requerido): Término de búsqueda. Debe tener al menos 3 caracteres. Busca en nombre, primer apellido y segundo apellido.
+
+**Respuesta exitosa (200 OK):**
+```json
+[
+  {
+    "id": "guid",
+    "name": "string",
+    "firstLastname": "string",
+    "secondLastname": "string",
+    "phone": "string",
+    "email": "string",
+    "birthDate": "datetime"
+  }
+]
+```
+
+**Respuesta de error (400 Bad Request):**
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "El término de búsqueda debe tener al menos 3 caracteres."
+}
+```
+
+---
+
+### 5. Actualizar Cliente
 ```
 PUT /api/customer/{id}
 ```
@@ -125,7 +160,7 @@ PUT /api/customer/{id}
 
 ---
 
-### 5. Eliminar Cliente
+### 6. Eliminar Cliente
 ```
 DELETE /api/customer/{id}
 ```
@@ -336,7 +371,45 @@ GET /api/user
 
 ---
 
-### 4. Actualizar Usuario
+### 4. Buscar Usuarios
+```
+GET /api/user/search?term={term}
+```
+
+**Parámetros:**
+- `term` (string, query, requerido): Término de búsqueda. Debe tener al menos 3 caracteres. Busca en nombre, primer apellido y segundo apellido.
+
+**Respuesta exitosa (200 OK):**
+```json
+[
+  {
+    "id": "guid",
+    "name": "string",
+    "firstLastname": "string",
+    "secondLastname": "string",
+    "email": "string",
+    "phone": "string",
+    "role": {
+      "id": "guid",
+      "name": "string"
+    }
+  }
+]
+```
+
+**Respuesta de error (400 Bad Request):**
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "El término de búsqueda debe tener al menos 3 caracteres."
+}
+```
+
+---
+
+### 5. Actualizar Usuario
 ```
 PUT /api/user/{id}
 ```
@@ -362,7 +435,7 @@ PUT /api/user/{id}
 
 ---
 
-### 5. Eliminar Usuario
+### 6. Eliminar Usuario
 ```
 DELETE /api/user/{id}
 ```

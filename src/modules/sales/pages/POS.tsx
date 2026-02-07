@@ -2,14 +2,14 @@ import { Button } from "@/components/elements/button";
 import { Input } from "@/components/elements/input";
 import { SearchableSelect } from "@/components/widgets/SearchableSelect";
 import { useCustomerApi } from "@/modules/customers/api/customerApi";
-import type { Customer } from "@/modules/customers/models/Customer";
+
 import { useInventoryApi } from "@/modules/inventories/api/inventoryApi";
 import type { Product } from "@/modules/products/models/Product";
 import { useProductApi } from "@/modules/products/productApi";
 import { useSaleApi } from "@/modules/sales/api/saleApi";
-import type { User } from "@/modules/users/models/User";
+
 import { useUserApi } from "@/modules/users/userApi";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface CartItem {
@@ -21,14 +21,13 @@ interface CartItem {
 const POS = () => {
     const navigate = useNavigate();
     const { getAllProducts } = useProductApi();
-    const { getAllCustomers } = useCustomerApi();
-    const { getAllUsers } = useUserApi();
+    const { searchCustomers } = useCustomerApi();
+    const { searchUsers } = useUserApi();
     const { createSale } = useSaleApi();
     const { getInventoryByProduct } = useInventoryApi();
 
     const [products, setProducts] = useState<Product[]>([]);
-    const [customers, setCustomers] = useState<Customer[]>([]);
-    const [users, setUsers] = useState<User[]>([]);
+
     const [cart, setCart] = useState<CartItem[]>([]);
 
     const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
@@ -41,14 +40,10 @@ const POS = () => {
         const loadData = async () => {
             setIsLoading(true);
             try {
-                const [productsData, customersData, usersData] = await Promise.all([
+                const [productsData] = await Promise.all([
                     getAllProducts(),
-                    getAllCustomers(),
-                    getAllUsers(),
                 ]);
                 setProducts(productsData);
-                setCustomers(customersData);
-                setUsers(usersData);
             } catch (error) {
                 console.error("Failed to load POS data", error);
             } finally {
@@ -57,6 +52,26 @@ const POS = () => {
         };
         loadData();
     }, []);
+
+    const handleSearchCustomers = useCallback(async (term: string) => {
+        try {
+            const results = await searchCustomers(term);
+            return results.map(c => ({ label: `${c.name} ${c.firstLastname}`, value: c.id }));
+        } catch (error) {
+            console.error("Failed to search customers", error);
+            return [];
+        }
+    }, [searchCustomers]);
+
+    const handleSearchUsers = useCallback(async (term: string) => {
+        try {
+            const results = await searchUsers(term);
+            return results.map(u => ({ label: `${u.name} ${u.firstLastname}`, value: u.id }));
+        } catch (error) {
+            console.error("Failed to search users", error);
+            return [];
+        }
+    }, [searchUsers]);
 
     const addToCart = async (product: Product) => {
         // Check inventory first
@@ -221,7 +236,7 @@ const POS = () => {
                     <div className="space-y-2">
                         <label className="text-sm font-medium">User (Seller)</label>
                         <SearchableSelect
-                            options={users.map(u => ({ label: `${u.name} ${u.firstLastname}`, value: u.id }))}
+                            onSearch={handleSearchUsers}
                             value={selectedUserId}
                             onSelect={setSelectedUserId}
                             placeholder="Select User"
@@ -232,7 +247,7 @@ const POS = () => {
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Customer</label>
                         <SearchableSelect
-                            options={customers.map(c => ({ label: `${c.name} ${c.firstLastname}`, value: c.id }))}
+                            onSearch={handleSearchCustomers}
                             value={selectedCustomerId}
                             onSelect={setSelectedCustomerId}
                             placeholder="Select Customer"

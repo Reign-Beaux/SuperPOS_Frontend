@@ -8,6 +8,7 @@ const endpoints = {
     create: "User",
     update: (id: string) => `User/${id}`,
     delete: (id: string) => `User/${id}`,
+    search: (term: string) => `User/search?term=${term}`,
 };
 
 export const useUserApi = () => {
@@ -33,11 +34,16 @@ export const useUserApi = () => {
         return await remove<void>(endpoints.delete(id));
     }, [remove]);
 
+    const searchUsers = useCallback(async (term: string) => {
+        return await get<User[]>(endpoints.search(term));
+    }, [get]);
+
     return {
         getAllUsers,
         getUserById,
         createUser,
         updateUser,
         deleteUser,
+        searchUsers,
     };
 };
