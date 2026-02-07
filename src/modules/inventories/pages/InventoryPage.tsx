@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/elements/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/elements/tabs";
 import { useInventoryApi } from "@/modules/inventories/api/inventoryApi";
-import type { Inventory } from "@/modules/inventories/models/Inventory";
+import { type Inventory, InventoryOperation } from "@/modules/inventories/models/Inventory";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -51,7 +51,7 @@ const InventoryPage = () => {
             // Operation 0 = Add (Entrada)
             // Operation 2 = Remove (Salida)
             // Stock must always be positive.
-            const operation = adjustType === "in" ? 0 : 2;
+            const operation = adjustType === "in" ? InventoryOperation.Add : InventoryOperation.Remove;
 
             await adjustInventory({
                 productId: selectedInventory.productId,

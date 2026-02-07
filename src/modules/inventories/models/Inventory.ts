@@ -9,8 +9,16 @@ export interface Inventory {
     updatedAt: string;
 }
 
+export const InventoryOperation = {
+    Add: 0,
+    Set: 1,
+    Remove: 2
+} as const;
+
+export type InventoryOperation = typeof InventoryOperation[keyof typeof InventoryOperation];
+
 export interface InventoryAdjustRequest {
     productId: string;
     stock: number;
-    operation: 0 | 1 | 2; // 0 = Add, 1 = Set, 2 = Remove
+    operation: InventoryOperation;
 }
