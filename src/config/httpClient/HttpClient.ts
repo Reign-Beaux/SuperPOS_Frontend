@@ -1,5 +1,5 @@
 import axios, { type AxiosResponse } from "axios";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useInterceptor } from "./Interceptors";
 
 export const useHttpClient = () => {
@@ -14,17 +14,6 @@ export const useHttpClient = () => {
 
     const removeController = useCallback((controller: AbortController) => {
         activeControllersRef.current = activeControllersRef.current.filter((c) => c !== controller);
-    }, []);
-
-    useEffect(() => {
-        return () => {
-            activeControllersRef.current.forEach((controller) => {
-                if (!controller.signal.aborted) {
-                    controller.abort();
-                }
-            });
-            activeControllersRef.current = [];
-        };
     }, []);
 
     const get = useCallback(async <R>(endpoint: string) => {

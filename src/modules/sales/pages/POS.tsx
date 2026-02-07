@@ -139,7 +139,7 @@ const POS = () => {
         (p.barcode && p.barcode.includes(searchTerm))
     );
 
-    const total = cart.reduce((sum, item) => sum + (100 * item.quantity), 0);
+    const total = cart.reduce((sum, item) => sum + (item.product.unitPrice * item.quantity), 0);
 
     if (isLoading) {
         return <div className="container mx-auto py-10">Loading POS data...</div>;
@@ -153,31 +153,71 @@ const POS = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
-                {/* Left: Products */}
+                {/* Left: Cart Items List */}
                 <div className="md:col-span-2 flex flex-col gap-4 border rounded-md p-4 bg-background">
                     <Input
                         placeholder="Search products by name or barcode..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && searchTerm.trim()) {
+                                const product = filteredProducts[0];
+                                if (product) {
+                                    addToCart(product);
+                                    setSearchTerm('');
+                                }
+                            }
+                        }}
                     />
-                    <div className="flex-1 overflow-y-auto grid grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredProducts.map(product => (
-                            <div key={product.id}
-                                className="border p-4 rounded-lg flex flex-col justify-between hover:bg-muted/50 cursor-pointer transition-colors"
-                                onClick={() => addToCart(product)}
-                            >
-                                <div>
-                                    <h3 className="font-bold">{product.name}</h3>
-                                    <p className="text-sm text-muted-foreground">{product.barcode}</p>
+
+                    {/* Cart Items as Rows */}
+                    <div className="flex-1 overflow-y-auto space-y-2">
+                        {cart.length === 0 && (
+                            <p className="text-center text-muted-foreground py-8">
+                                Search or scan a product to add it to the cart
+                            </p>
+                        )}
+                        {cart.map(item => (
+                            <div key={item.product.id} className="flex items-center gap-4 p-3 border rounded-md bg-card">
+                                <div className="flex-1">
+                                    <p className="font-medium">{item.product.name}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {item.product.barcode} • Stock: {item.stock}
+                                    </p>
                                 </div>
-                                <Button size="sm" className="mt-2 w-full">Add to Cart</Button>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        size="icon"
+                                        variant="outline"
+                                        className="h-8 w-8"
+                                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                                    >
+                                        -
+                                    </Button>
+                                    <span className="w-12 text-center font-medium">{item.quantity}</span>
+                                    <Button
+                                        size="icon"
+                                        variant="outline"
+                                        className="h-8 w-8"
+                                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                                    >
+                                        +
+                                    </Button>
+                                    <Button
+                                        size="icon"
+                                        variant="destructive"
+                                        className="h-8 w-8 ml-2"
+                                        onClick={() => removeFromCart(item.product.id)}
+                                    >
+                                        ×
+                                    </Button>
+                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
 
                 <div className="flex flex-col gap-4 border rounded-md p-4 bg-background">
-
                     <div className="space-y-2">
                         <label className="text-sm font-medium">User (Seller)</label>
                         <SearchableSelect
@@ -200,39 +240,30 @@ const POS = () => {
                         />
                     </div>
 
-                    <div className="flex-1 overflow-y-auto border-t border-b py-2 space-y-2">
-                        {cart.length === 0 && <p className="text-center text-muted-foreground py-4">Cart is empty</p>}
-                        {cart.map(item => (
-                            <div key={item.product.id} className="flex justify-between items-center p-2 border rounded-md">
-                                <div className="flex-1">
-                                    <p className="font-medium truncate">{item.product.name}</p>
-                                    <p className="text-xs text-muted-foreground">Stock: {item.stock}</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button size="icon" variant="outline" className="h-6 w-6"
-                                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}>-</Button>
-                                    <span className="w-8 text-center">{item.quantity}</span>
-                                    <Button size="icon" variant="outline" className="h-6 w-6"
-                                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}>+</Button>
-                                    <Button size="icon" variant="destructive" className="h-6 w-6 ml-1"
-                                        onClick={() => removeFromCart(item.product.id)}>x</Button>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="flex-1"></div>
+
+                    {/* Financial Summary */}
+                    <div className="space-y-3 border-t pt-4">
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Subtotal:</span>
+                            <span className="font-medium">${total.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">IVA (16%):</span>
+                            <span className="font-medium">${(total * 0.16).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-xl font-bold border-t pt-3">
+                            <span>Total:</span>
+                            <span>${(total * 1.16).toFixed(2)}</span>
+                        </div>
                     </div>
 
-                    <div className="mt-auto pt-2">
-                        <div className="flex justify-between text-lg font-bold mb-4">
-                            <span>Total (Est.)</span>
-                            <span>${total.toFixed(2)}</span>
-                        </div>
-                        <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isSubmitting}>
-                            {isSubmitting ? "Processing..." : "Complete Sale"}
-                        </Button>
-                        <p className="text-xs text-muted-foreground text-center mt-2">
-                            *Price calculated by server
-                        </p>
-                    </div>
+                    <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isSubmitting}>
+                        {isSubmitting ? "Processing..." : "Complete Sale"}
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                        *Price calculated by server
+                    </p>
                 </div>
             </div>
         </div >
