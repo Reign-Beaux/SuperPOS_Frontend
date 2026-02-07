@@ -4,7 +4,7 @@ import { DataTable } from "@/components/widgets/DataTable";
 import { FormSheet } from "@/components/widgets/FormSheet";
 import { PageHeader } from "@/components/widgets/PageHeader";
 import { TableToolbar } from "@/components/widgets/TableToolbar";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { getProductColumns } from "./components/ProductColumns";
 import { ProductForm } from "./components/ProductForm";
 import { useCatalogHandler } from "./productCatalogHandler";
@@ -27,16 +27,21 @@ const ProductCatalog = () => {
 
     const [searchTerm, setSearchTerm] = useState("");
 
-    const filteredProducts = products.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.barcode && p.barcode.includes(searchTerm))
-    );
+    // Memoize filtered products to prevent re-calculation on every render
+    const filteredProducts = useMemo(() => {
+        const searchLower = searchTerm.toLowerCase();
+        return products.filter(p =>
+            p.name.toLowerCase().includes(searchLower) ||
+            (p.barcode && p.barcode.includes(searchTerm))
+        );
+    }, [products, searchTerm]);
 
-    const columns = getProductColumns({
+    // Memoize columns to prevent recreation on every render
+    const columns = useMemo(() => getProductColumns({
         product: {} as any,
         onEdit: handleEdit,
         onDelete: handleDeleteClick
-    });
+    }), [handleEdit, handleDeleteClick]);
 
     return (
         <div className="container mx-auto py-10 space-y-6">
@@ -52,7 +57,7 @@ const ProductCatalog = () => {
                     searchPlaceholder="Filter products..."
                 />
 
-                {isLoading && products.length === 0 ? (
+                {(isLoading && products.length === 0) ? (
                     <div>Loading...</div>
                 ) : (
                     <DataTable columns={columns} data={filteredProducts} />
@@ -65,6 +70,7 @@ const ProductCatalog = () => {
                 onClose={() => setIsSheetOpen(false)}
             >
                 <ProductForm
+                    key={selectedProduct?.id || 'new'}
                     initialData={selectedProduct ? { ...selectedProduct, id: selectedProduct.id } : undefined}
                     onSubmit={handleSubmit}
                     onCancel={() => setIsSheetOpen(false)}

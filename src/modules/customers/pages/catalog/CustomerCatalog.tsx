@@ -4,7 +4,7 @@ import { DataTable } from "@/components/widgets/DataTable";
 import { FormSheet } from "@/components/widgets/FormSheet";
 import { PageHeader } from "@/components/widgets/PageHeader";
 import { TableToolbar } from "@/components/widgets/TableToolbar";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { getCustomerColumns } from "./components/CustomerColumns";
 import { CustomerForm } from "./components/CustomerForm";
 import { useCustomerCatalogHandler } from "./customerCatalogHandler";
@@ -27,16 +27,21 @@ const CustomerCatalog = () => {
 
     const [searchTerm, setSearchTerm] = useState("");
 
-    const filteredCustomers = customers.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.firstLastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
-    );
+    // Memoize filtered customers to prevent re-calculation on every render
+    const filteredCustomers = useMemo(() => {
+        const searchLower = searchTerm.toLowerCase();
+        return customers.filter(c =>
+            c.name.toLowerCase().includes(searchLower) ||
+            c.firstLastname.toLowerCase().includes(searchLower) ||
+            (c.email?.toLowerCase().includes(searchLower) ?? false)
+        );
+    }, [customers, searchTerm]);
 
-    const columns = getCustomerColumns({
+    // Memoize columns to prevent recreation on every render
+    const columns = useMemo(() => getCustomerColumns({
         onEdit: handleEdit,
         onDelete: handleDeleteClick
-    });
+    }), [handleEdit, handleDeleteClick]);
 
     return (
         <div className="container mx-auto py-10 space-y-6">
@@ -52,7 +57,7 @@ const CustomerCatalog = () => {
                     searchPlaceholder="Filter customers..."
                 />
 
-                {isLoading && customers.length === 0 ? (
+                {(isLoading && customers.length === 0) ? (
                     <div>Loading...</div>
                 ) : (
                     <DataTable columns={columns} data={filteredCustomers} />
@@ -65,6 +70,7 @@ const CustomerCatalog = () => {
                 onClose={() => setIsSheetOpen(false)}
             >
                 <CustomerForm
+                    key={selectedCustomer?.id || 'new'}
                     initialData={selectedCustomer ? { ...selectedCustomer, id: selectedCustomer.id } : undefined}
                     onSubmit={handleSubmit}
                     onCancel={() => setIsSheetOpen(false)}

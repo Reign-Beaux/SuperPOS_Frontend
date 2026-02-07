@@ -1,9 +1,8 @@
 import { Button } from "@components/elements/button";
 import { Input } from "@components/elements/input";
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { UpdateProductRequest } from "@modules/products/models/Product";
 import { type ProductFormValues, productSchema } from "@modules/products/schemes/ProductScheme";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 interface ProductFormProps {
@@ -17,32 +16,15 @@ export const ProductForm = ({ initialData, onSubmit, onCancel, isLoading }: Prod
     const {
         control,
         handleSubmit,
-        reset,
         formState: { errors },
     } = useForm<ProductFormValues>({
         resolver: zodResolver(productSchema),
-        defaultValues: {
+        defaultValues: initialData || {
             name: "",
             description: "",
             barcode: "",
         },
     });
-
-    useEffect(() => {
-        if (initialData) {
-            reset({
-                name: initialData.name,
-                description: initialData.description,
-                barcode: initialData.barcode,
-            });
-        } else {
-            reset({
-                name: "",
-                description: "",
-                barcode: "",
-            });
-        }
-    }, [initialData, reset]);
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-5">

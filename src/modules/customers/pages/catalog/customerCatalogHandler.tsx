@@ -44,13 +44,20 @@ export const useCustomerCatalogHandler = () => {
     const handleConfirmDelete = async () => {
         if (!customerToDelete) return;
 
+        // Optimistic update: Update UI immediately
+        const previousCustomers = customers;
+        setCustomers(prev => prev.filter(c => c.id !== customerToDelete));
+        setIsDeleteConfirmOpen(false);
+        const deletedId = customerToDelete;
+        setCustomerToDelete(null);
+
         try {
-            await deleteCustomer(customerToDelete);
-            await loadCustomers();
-            setIsDeleteConfirmOpen(false);
-            setCustomerToDelete(null);
+            await deleteCustomer(deletedId);
+            // Success - no need to reload, UI already updated
         } catch (error) {
             console.error("Failed to delete customer", error);
+            // Revert on error
+            setCustomers(previousCustomers);
         }
     };
 
@@ -68,6 +75,12 @@ export const useCustomerCatalogHandler = () => {
                     birthDate: values.birthDate ? new Date(values.birthDate).toISOString() : undefined
                 };
                 await updateCustomer(updateRequest);
+                // Update local state instead of reloading
+                setCustomers(prev => prev.map(c =>
+                    c.id === selectedCustomer.id
+                        ? { ...c, ...updateRequest }
+                        : c
+                ));
             } else {
                 const createRequest: CreateCustomerRequest = {
                     name: values.name,
@@ -77,12 +90,15 @@ export const useCustomerCatalogHandler = () => {
                     phone: values.phone,
                     birthDate: values.birthDate ? new Date(values.birthDate).toISOString() : undefined
                 };
-                await createCustomer(createRequest);
+                const newCustomer = await createCustomer(createRequest);
+                // Add to local state
+                setCustomers(prev => [...prev, newCustomer]);
             }
             setIsSheetOpen(false);
-            await loadCustomers();
         } catch (error) {
             console.error("Failed to save customer", error);
+            // On error, reload to ensure consistency
+            await loadCustomers();
         } finally {
             setIsLoading(false);
         }

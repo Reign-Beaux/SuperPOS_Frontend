@@ -3,7 +3,6 @@ import { Input } from "@/components/elements/input";
 import type { UpdateCustomerRequest } from "@/modules/customers/models/Customer";
 import { type CustomerFormValues, customerSchema } from "@/modules/customers/schemes/CustomerScheme";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 interface CustomerFormProps {
@@ -17,11 +16,17 @@ export const CustomerForm = ({ initialData, onSubmit, onCancel, isLoading }: Cus
     const {
         control,
         handleSubmit,
-        reset,
         formState: { errors },
     } = useForm<CustomerFormValues>({
         resolver: zodResolver(customerSchema),
-        defaultValues: {
+        defaultValues: initialData ? {
+            name: initialData.name,
+            firstLastname: initialData.firstLastname,
+            secondLastname: initialData.secondLastname || "",
+            email: initialData.email || "",
+            phone: initialData.phone || "",
+            birthDate: initialData.birthDate ? initialData.birthDate.split('T')[0] : "",
+        } : {
             name: "",
             firstLastname: "",
             secondLastname: "",
@@ -30,28 +35,6 @@ export const CustomerForm = ({ initialData, onSubmit, onCancel, isLoading }: Cus
             birthDate: "",
         },
     });
-
-    useEffect(() => {
-        if (initialData) {
-            reset({
-                name: initialData.name,
-                firstLastname: initialData.firstLastname,
-                secondLastname: initialData.secondLastname || "",
-                email: initialData.email || "",
-                phone: initialData.phone || "",
-                birthDate: initialData.birthDate ? initialData.birthDate.split('T')[0] : "",
-            });
-        } else {
-            reset({
-                name: "",
-                firstLastname: "",
-                secondLastname: "",
-                email: "",
-                phone: "",
-                birthDate: "",
-            });
-        }
-    }, [initialData, reset]);
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-5">

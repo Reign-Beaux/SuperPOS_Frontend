@@ -1,6 +1,6 @@
-import { useUserApi } from "@/modules/users/userApi";
-import type { User, CreateUserRequest, UpdateUserRequest } from "@/modules/users/models/User";
+import type { CreateUserRequest, UpdateUserRequest, User } from "@/modules/users/models/User";
 import type { UserFormValues } from "@/modules/users/schemes/UserScheme";
+import { useUserApi } from "@/modules/users/userApi";
 import { useEffect, useState } from "react";
 
 export const useCatalogHandler = () => {
@@ -44,13 +44,20 @@ export const useCatalogHandler = () => {
     const handleConfirmDelete = async () => {
         if (!userToDelete) return;
 
+        // Optimistic update: Update UI immediately
+        const previousUsers = users;
+        setUsers(prev => prev.filter(u => u.id !== userToDelete));
+        setIsDeleteConfirmOpen(false);
+        const deletedId = userToDelete;
+        setUserToDelete(null);
+
         try {
-            await deleteUser(userToDelete);
-            await loadUsers();
-            setIsDeleteConfirmOpen(false);
-            setUserToDelete(null);
+            await deleteUser(deletedId);
+            // Success - no need to reload, UI already updated
         } catch (error) {
             console.error("Failed to delete user", error);
+            // Revert on error
+            setUsers(previousUsers);
         }
     };
 
@@ -69,6 +76,12 @@ export const useCatalogHandler = () => {
                     password: values.password || undefined
                 };
                 await updateUser(updateRequest);
+                // Update local state instead of reloading
+                setUsers(prev => prev.map(u =>
+                    u.id === selectedUser.id
+                        ? { ...u, ...updateRequest }
+                        : u
+                ));
             } else {
                 const createRequest: CreateUserRequest = {
                     name: values.name,
@@ -79,12 +92,15 @@ export const useCatalogHandler = () => {
                     roleId: values.roleId,
                     password: values.password || ""
                 };
-                await createUser(createRequest);
+                const newUser = await createUser(createRequest);
+                // Add to local state
+                setUsers(prev => [...prev, newUser]);
             }
             setIsSheetOpen(false);
-            await loadUsers();
         } catch (error) {
             console.error("Failed to save user", error);
+            // On error, reload to ensure consistency
+            await loadUsers();
         } finally {
             setIsLoading(false);
         }

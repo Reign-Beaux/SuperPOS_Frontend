@@ -1,5 +1,5 @@
 import { useRoleApi } from "@/modules/roles/api/roleApi";
-import type { Role, CreateRoleRequest, UpdateRoleRequest } from "@/modules/roles/models/Role";
+import type { CreateRoleRequest, Role, UpdateRoleRequest } from "@/modules/roles/models/Role";
 import type { RoleFormValues } from "@/modules/roles/schemes/RoleScheme";
 import { useEffect, useState } from "react";
 
@@ -44,13 +44,20 @@ export const useRoleCatalogHandler = () => {
     const handleConfirmDelete = async () => {
         if (!roleToDelete) return;
 
+        // Optimistic update: Update UI immediately
+        const previousRoles = roles;
+        setRoles(prev => prev.filter(r => r.id !== roleToDelete));
+        setIsDeleteConfirmOpen(false);
+        const deletedId = roleToDelete;
+        setRoleToDelete(null);
+
         try {
-            await deleteRole(roleToDelete);
-            await loadRoles();
-            setIsDeleteConfirmOpen(false);
-            setRoleToDelete(null);
+            await deleteRole(deletedId);
+            // Success - no need to reload, UI already updated
         } catch (error) {
             console.error("Failed to delete role", error);
+            // Revert on error
+            setRoles(previousRoles);
         }
     };
 
@@ -64,17 +71,26 @@ export const useRoleCatalogHandler = () => {
                     description: values.description
                 };
                 await updateRole(updateRequest);
+                // Update local state instead of reloading
+                setRoles(prev => prev.map(r =>
+                    r.id === selectedRole.id
+                        ? { ...r, ...updateRequest }
+                        : r
+                ));
             } else {
                 const createRequest: CreateRoleRequest = {
                     name: values.name,
                     description: values.description
                 };
-                await createRole(createRequest);
+                const newRole = await createRole(createRequest);
+                // Add to local state
+                setRoles(prev => [...prev, newRole]);
             }
             setIsSheetOpen(false);
-            await loadRoles();
         } catch (error) {
             console.error("Failed to save role", error);
+            // On error, reload to ensure consistency
+            await loadRoles();
         } finally {
             setIsLoading(false);
         }
