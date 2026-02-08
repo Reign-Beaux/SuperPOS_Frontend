@@ -118,6 +118,13 @@ export function SearchableSelect({
         }
     }
 
+    // Additional cleanup when popover closes
+    React.useEffect(() => {
+        if (!open) {
+            setSearchTerm("");
+        }
+    }, [open]);
+
     return (
         <Popover open={open} onOpenChange={handleOpenChange}>
             <PopoverTrigger asChild>

@@ -1,5 +1,4 @@
 import { Button } from "@/components/elements/button";
-import { Input } from "@/components/elements/input";
 import { SearchableSelect } from "@/components/widgets/SearchableSelect";
 import { useCustomerApi } from "@/modules/customers/api/customerApi";
 
@@ -9,7 +8,7 @@ import { useProductApi } from "@/modules/products/productApi";
 import { useSaleApi } from "@/modules/sales/api/saleApi";
 
 import { useUserApi } from "@/modules/users/userApi";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -27,46 +26,14 @@ const POS = () => {
     const { createSale } = useSaleApi();
     const { getInventoryByProduct } = useInventoryApi();
 
-    const [products, setProducts] = useState<Product[]>([]);
+    // Temporary storage for search results to enable selection
+    const searchResultsRef = useRef<Product[]>([]);
 
     const [cart, setCart] = useState<CartItem[]>([]);
 
     const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
     const [selectedUserId, setSelectedUserId] = useState<string>("");
-    const [searchTerm, setSearchTerm] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // Server-side search effect
-    useEffect(() => {
-        const timer = setTimeout(async () => {
-            if (searchTerm.length >= 3) {
-                setIsLoading(true);
-                try {
-                    const results = await searchProducts(searchTerm);
-
-                    // Check for exact barcode match
-                    const exactMatch = results.find(p => p.barcode === searchTerm);
-                    if (exactMatch) {
-                        addToCart(exactMatch);
-                        setSearchTerm('');
-                        setProducts([]);
-                    } else {
-                        setProducts(results);
-                    }
-                } catch (error) {
-                    console.error("Failed to search products", error);
-                    setProducts([]);
-                } finally {
-                    setIsLoading(false);
-                }
-            } else {
-                setProducts([]);
-            }
-        }, 300); // 300ms debounce
-
-        return () => clearTimeout(timer);
-    }, [searchTerm, searchProducts]);
 
     const handleSearchCustomers = useCallback(async (term: string) => {
         try {
@@ -92,7 +59,7 @@ const POS = () => {
         // Check inventory first
         try {
             const inventory = await getInventoryByProduct(product.id);
-            const stock = inventory.quantity;
+            const stock = inventory.stock;
 
             setCart(prev => {
                 const existing = prev.find(item => item.product.id === product.id);
@@ -168,10 +135,6 @@ const POS = () => {
 
     const total = cart.reduce((sum, item) => sum + (item.product.unitPrice * item.quantity), 0);
 
-    if (isLoading) {
-        return <div className="container mx-auto py-10">Loading POS data...</div>;
-    }
-
     return (
         <div className="container mx-auto py-5 h-[calc(100vh-80px)] flex flex-col gap-4">
             <div className="flex items-center justify-between">
@@ -182,44 +145,34 @@ const POS = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
                 {/* Left: Cart Items List */}
                 <div className="md:col-span-2 flex flex-col gap-4 border rounded-md p-4 bg-background">
-                    <Input
-                        placeholder="Search products by name or barcode..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && searchTerm.trim()) {
-                                const product = products[0];
-                                if (product) {
-                                    addToCart(product);
-                                    setSearchTerm('');
-                                }
+                    <SearchableSelect
+                        onSearch={async (term) => {
+                            if (term.length < 3) return [];
+                            try {
+                                const results = await searchProducts(term);
+                                // Store results in ref for later selection
+                                searchResultsRef.current = results;
+                                return results.map((p: Product) => ({
+                                    label: p.name,
+                                    value: p.id
+                                }));
+                            } catch (error) {
+                                console.error("Search failed", error);
+                                searchResultsRef.current = [];
+                                return [];
                             }
                         }}
+                        onSelect={(productId) => {
+                            // Find product from the stored search results
+                            const product = searchResultsRef.current.find(p => p.id === productId);
+                            if (product) {
+                                addToCart(product);
+                            }
+                        }}
+                        placeholder="Search products by name or barcode..."
+                        searchPlaceholder="Type to search..."
+                        value=""
                     />
-
-                    {/* Filtered Products List */}
-                    {searchTerm && products.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-popover text-popover-foreground shadow-md rounded-md border p-1 max-h-60 overflow-y-auto">
-                            {products.slice(0, 10).map(product => (
-                                <div
-                                    key={product.id}
-                                    className="flex items-center justify-between p-2 hover:bg-muted cursor-pointer rounded-sm"
-                                    onClick={() => {
-                                        addToCart(product);
-                                        setSearchTerm('');
-                                    }}
-                                >
-                                    <div>
-                                        <div className="font-medium text-sm">{product.name}</div>
-                                        <div className="text-xs text-muted-foreground">{product.barcode}</div>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="font-medium text-sm">${product.unitPrice.toFixed(2)}</div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
 
                     {/* Cart Items as Rows */}
                     <div className="flex-1 overflow-y-auto space-y-2">
