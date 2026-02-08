@@ -37,19 +37,58 @@ const CommandDialog = ({
 const CommandInput = React.forwardRef<
     React.ComponentRef<typeof CommandPrimitive.Input>,
     React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, ...props }, ref) => (
-    <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-        <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-        <CommandPrimitive.Input
-            ref={ref}
-            className={cn(
-                "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
-                className
+>(({ className, ...props }, ref) => {
+    const showClear = !!props.value && String(props.value).length > 0;
+
+    return (
+        <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
+            <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+            <CommandPrimitive.Input
+                ref={ref}
+                className={cn(
+                    "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+                    className
+                )}
+                {...props}
+                onKeyDown={(e) => {
+                    // Allow text selection with Shift + Home/End
+                    if (e.shiftKey && (e.key === 'Home' || e.key === 'End')) {
+                        e.stopPropagation();
+                    }
+                    props.onKeyDown?.(e);
+                }}
+            />
+            {showClear && (
+                <button
+                    onClick={() => {
+                        const onValueChange = (props as any).onValueChange;
+                        if (typeof onValueChange === 'function') {
+                            onValueChange('');
+                        }
+                    }}
+                    className="ml-2 h-4 w-4 shrink-0 opacity-50 hover:opacity-100 cursor-pointer flex items-center justify-center rounded-full hover:bg-muted"
+                    type="button"
+                    tabIndex={-1}
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-3 w-3"
+                    >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                    <span className="sr-only">Clear</span>
+                </button>
             )}
-            {...props}
-        />
-    </div>
-))
+        </div>
+    )
+})
 CommandInput.displayName = CommandPrimitive.Input.displayName
 
 const CommandList = React.forwardRef<
