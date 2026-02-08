@@ -9,7 +9,6 @@ import { useSaleApi } from "@/modules/sales/api/saleApi";
 
 import { useUserApi } from "@/modules/users/userApi";
 import { useCallback, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 interface CartItem {
@@ -19,7 +18,6 @@ interface CartItem {
 }
 
 const POS = () => {
-    const navigate = useNavigate();
     const { searchProducts } = useProductApi();
     const { searchCustomers } = useCustomerApi();
     const { searchUsers } = useUserApi();
@@ -121,11 +119,13 @@ const POS = () => {
                 }))
             });
             toast.success("Sale created successfully!");
-            navigate("/sales");
+
+            // Clear cart and customer, but keep user selected
+            setCart([]);
+            setSelectedCustomerId("");
         } catch (error: any) {
-            // Handle 409 Conflict (Stock) specially if possible, but global handler might catch it or axios
             console.error("Failed to create sale", error);
-            toast.error("Failed to create sale. See console.");
+            toast.error("Failed to create sale. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
@@ -139,7 +139,6 @@ const POS = () => {
         <div className="container mx-auto py-5 h-[calc(100vh-80px)] flex flex-col gap-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">POS (Point of Sale)</h1>
-                <Button variant="secondary" onClick={() => navigate("/sales")}>History</Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
