@@ -1,5 +1,18 @@
 # SuperPOS Frontend - Contexto del Proyecto
 
+## Objetivo del Proyecto
+
+**El objetivo principal es aprender e implementar conceptos avanzados de desarrollo de software a través de un proyecto práctico y completo siendo asistido por IA.**
+
+Este proyecto sirve como plataforma de aprendizaje para:
+
+- Arquitecturas modernas de frontend (React 19, TypeScript, Vite)
+- Patrones de diseño y mejores prácticas
+- Integración con APIs RESTful
+- Gestión de estado y formularios
+- UI/UX con componentes accesibles
+- Desarrollo asistido por IA
+
 ## Descripción General del Proyecto
 
 **SuperPOS** es un sistema moderno y completo de Punto de Venta (Point of Sale) basado en web, diseñado para gestionar ventas, inventarios, productos, clientes, usuarios, roles, cortes de caja y devoluciones. Este es el **frontend** de la aplicación, construido con las últimas tecnologías web para ofrecer una experiencia rápida, type-safe y accesible.
