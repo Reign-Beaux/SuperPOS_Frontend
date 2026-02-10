@@ -24,7 +24,7 @@ export const useSaleApi = () => {
     }, [post]);
 
     const downloadTicketPdf = useCallback(async (saleId: string) => {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/Sale/${saleId}/ticket`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/Sale/${saleId}/ticket`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/pdf',
