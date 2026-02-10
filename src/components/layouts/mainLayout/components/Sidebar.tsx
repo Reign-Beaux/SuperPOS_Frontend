@@ -1,6 +1,6 @@
-import { Home, Package, Settings, Users, ShoppingCart, Shield, Contact, Warehouse } from "lucide-react"
-import { Link } from "react-router-dom"
 import { Routes } from "@/config/router/Routes"
+import { Contact, DollarSign, Home, Package, RotateCcw, Settings, Shield, ShoppingCart, Users, Warehouse } from "lucide-react"
+import { Link } from "react-router-dom"
 
 import {
     Sidebar as ShadcnSidebar,
@@ -53,6 +53,16 @@ const items = [
         title: "Roles",
         url: Routes.Roles,
         icon: Shield,
+    },
+    {
+        title: "Cash Register",
+        url: Routes.CashRegister,
+        icon: DollarSign,
+    },
+    {
+        title: "Returns",
+        url: Routes.Returns,
+        icon: RotateCcw,
     },
     {
         title: "Settings",

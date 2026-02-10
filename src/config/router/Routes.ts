@@ -7,6 +7,8 @@ export const Routes = {
     Sales: "/sales",
     POS: "/pos",
     Inventory: "/inventory",
+    CashRegister: "/cash-register",
+    Returns: "/returns",
 } as const;
 
 export type Routes = typeof Routes[keyof typeof Routes];

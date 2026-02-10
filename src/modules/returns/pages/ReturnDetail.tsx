@@ -221,7 +221,7 @@ const ReturnDetail = () => {
                     <div className="space-y-2">
                         <div className="flex justify-between text-xl font-bold">
                             <span>Total Refund:</span>
-                            <span>${returnData.totalRefund.toFixed(2)}</span>
+                            <span>${(returnData.totalRefund ?? 0).toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
