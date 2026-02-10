@@ -23,9 +23,41 @@ export const useSaleApi = () => {
         return await post<CreateSaleRequest, Sale>(endpoints.create, sale);
     }, [post]);
 
+    const downloadTicketPdf = useCallback(async (saleId: string) => {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/Sale/${saleId}/ticket`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/pdf',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to download ticket');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Ticket-${saleId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    }, []);
+
+    const cancelSale = useCallback(async (saleId: string, userId: string, reason: string) => {
+        return await post<{ userId: string; reason: string }, Sale>(
+            `Sale/${saleId}/cancel`,
+            { userId, reason }
+        );
+    }, [post]);
+
     return {
         getAllSales,
         getSaleById,
         createSale,
+        downloadTicketPdf,
+        cancelSale,
     };
 };

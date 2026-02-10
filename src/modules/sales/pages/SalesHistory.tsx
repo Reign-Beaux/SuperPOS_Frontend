@@ -53,6 +53,20 @@ const SalesHistory = () => {
             header: "Items",
             className: "text-right",
             cell: (sale: Sale) => sale.details.length,
+        },
+        {
+            header: "Status",
+            cell: (sale: Sale) => (
+                sale.isCancelled ? (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/10 text-destructive">
+                        Cancelled
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        Active
+                    </span>
+                )
+            ),
         }
     ];
 
@@ -60,7 +74,7 @@ const SalesHistory = () => {
         <div className="container mx-auto py-10 space-y-6">
             <PageHeader
                 title="Sales History"
-                action={<Button onClick={() => navigate("/sales/pos")}>New Sale (POS)</Button>}
+                action={<Button onClick={() => navigate("/pos")}>New Sale (POS)</Button>}
             />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -82,7 +96,11 @@ const SalesHistory = () => {
             {isLoading && sales.length === 0 ? (
                 <div>Loading...</div>
             ) : (
-                <DataTable columns={columns} data={sales} />
+                <DataTable 
+                    columns={columns} 
+                    data={sales}
+                    onRowClick={(sale) => navigate(`/sales/detail/${sale.id}`)}
+                />
             )}
         </div>
     );

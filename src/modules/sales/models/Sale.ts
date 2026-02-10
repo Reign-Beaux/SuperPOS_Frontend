@@ -16,6 +16,10 @@ export interface Sale {
     totalAmount: number;
     createdAt: string;
     details: SaleDetail[];
+    isCancelled?: boolean;
+    cancelledAt?: string;
+    cancelledByUserId?: string;
+    cancellationReason?: string;
 }
 
 export interface SaleItemRequest {

@@ -10,9 +10,10 @@ export interface Column<T> {
 interface DataTableProps<T> {
     columns: Column<T>[];
     data: T[];
+    onRowClick?: (item: T) => void;
 }
 
-export function DataTable<T extends { id: string }>({ columns, data }: DataTableProps<T>) {
+export function DataTable<T extends { id: string }>({ columns, data, onRowClick }: DataTableProps<T>) {
     return (
         <div className="rounded-md border">
             <table className="w-full text-sm">
@@ -39,7 +40,8 @@ export function DataTable<T extends { id: string }>({ columns, data }: DataTable
                         data.map((item) => (
                             <tr
                                 key={item.id}
-                                className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                                className={`border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted ${onRowClick ? "cursor-pointer" : ""}`}
+                                onClick={() => onRowClick?.(item)}
                             >
                                 {columns.map((column, index) => (
                                     <td
