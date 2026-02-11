@@ -1,5 +1,5 @@
 import { Routes } from "@/config/router/Routes"
-import { Contact, DollarSign, Home, Package, RotateCcw, Settings, Shield, ShoppingCart, Users, Warehouse } from "lucide-react"
+import { Contact, DollarSign, Home, Package, RotateCcw, Shield, ShoppingCart, Users, Warehouse } from "lucide-react"
 import { Link } from "react-router-dom"
 
 import {
@@ -63,11 +63,6 @@ const items = [
         title: "Returns",
         url: Routes.Returns,
         icon: RotateCcw,
-    },
-    {
-        title: "Settings",
-        url: "#",
-        icon: Settings,
     },
 ]
 
