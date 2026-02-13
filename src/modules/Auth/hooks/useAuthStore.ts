@@ -13,18 +13,19 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
     user: authService.getCurrentUser(),
     isAuthenticated: authService.isAuthenticated(),
-    isLoading: true,
+    isLoading: true, // Keep true initially to show spinner while checking
 
     checkAuth: async () => {
-        set({ isLoading: true });
         try {
             const success = await authService.tryAutoLogin();
+            
             set({ 
                 isAuthenticated: success, 
                 user: authService.getCurrentUser(),
                 isLoading: false 
             });
         } catch (error) {
+            console.error('🔐 checkAuth error:', error);
             set({ 
                 isAuthenticated: false, 
                 user: null, 
@@ -32,6 +33,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             });
         }
     },
+
 
     login: (user: User) => {
         set({ 

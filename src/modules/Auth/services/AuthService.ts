@@ -74,34 +74,26 @@ class AuthService {
      * Renovar access token
      */
     async refreshAccessToken(): Promise<string> {
-        console.log('🔄 refreshAccessToken called');
-        
         // Prevent concurrent refresh attempts
         if (this.isRefreshing) {
-            console.warn('⚠️  Token refresh already in progress, skipping');
             throw new Error('Token refresh already in progress');
         }
 
         const refreshToken = this.refreshToken || localStorage.getItem('refreshToken');
 
         if (!refreshToken) {
-            console.error('❌ No refresh token available');
             throw new Error('No refresh token available');
         }
 
         this.isRefreshing = true;
-        console.log('🔒 Refresh lock acquired');
 
         try {
-            console.log('📡 Calling /auth/refresh endpoint...');
             const response = await axios.post<RefreshTokenResponse>(`${API_URL}/auth/refresh`, {
                 refreshToken
             });
 
             const { accessToken, expiresIn } = response.data;
             
-            console.log('✅ Token refreshed successfully, expiresIn:', expiresIn);
-
             this.accessToken = accessToken;
             this.scheduleTokenRefresh(expiresIn);
             
@@ -112,7 +104,6 @@ class AuthService {
             throw error;
         } finally {
             this.isRefreshing = false;
-            console.log('🔓 Refresh lock released');
         }
     }
 
@@ -158,10 +149,8 @@ class AuthService {
      * Programar renovación automática del token
      */
     private scheduleTokenRefresh(expiresIn: number): void {
-        console.log('🔄 scheduleTokenRefresh called with expiresIn:', expiresIn);
         
         if (this.tokenExpirationTimer) {
-            console.log('⏱️  Clearing existing timer');
             clearTimeout(this.tokenExpirationTimer);
         }
 
@@ -170,10 +159,7 @@ class AuthService {
         const bufferTime = Math.min(300, expiresIn / 2);
         const refreshTime = Math.max(1000, (expiresIn - bufferTime) * 1000);
 
-        console.log(`⏰ Token will refresh in ${refreshTime / 1000} seconds (expiresIn: ${expiresIn}s, bufferTime: ${bufferTime}s)`);
-
         this.tokenExpirationTimer = setTimeout(async () => {
-            console.log('🔄 Auto-refresh triggered');
             try {
                 await this.refreshAccessToken();
             } catch (error) {
@@ -190,15 +176,25 @@ class AuthService {
     // This is tricky without exposing access token to storage.
     // Usually we try to refresh immediately if we have a refresh token but no access token.
     async tryAutoLogin(): Promise<boolean> {
-        if (this.accessToken) return true;
+        
+        if (this.accessToken) {
+            return true;
+        }
         
         const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) return false;
+        
+        if (!refreshToken) {
+            return false;
+        }
+
+        // Ensure this.refreshToken is set from localStorage
+        this.refreshToken = refreshToken;
 
         try {
             await this.refreshAccessToken();
             return true;
-        } catch {
+        } catch (error) {
+            console.error('❌ Auto-login failed:', error);
             return false;
         }
     }

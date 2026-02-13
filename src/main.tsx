@@ -9,12 +9,15 @@ import { RouterProvider } from 'react-router-dom'
 import './index.css'
 
 import { Toaster } from "sonner"
+import { AuthInitializer } from "@/modules/Auth/components/AuthInitializer"
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <RouterProvider router={router} />
+        <AuthInitializer>
+          <RouterProvider router={router} />
+        </AuthInitializer>
         <Toaster />
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />
