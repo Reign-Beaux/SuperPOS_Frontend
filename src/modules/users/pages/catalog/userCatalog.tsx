@@ -33,9 +33,9 @@ const UserCatalog = () => {
     const filteredUsers = useMemo(() => {
         const searchLower = searchTerm.toLowerCase();
         return users.filter(u =>
-            u.name.toLowerCase().includes(searchLower) ||
-            u.firstLastname.toLowerCase().includes(searchLower) ||
-            u.email.toLowerCase().includes(searchLower)
+            (u.name?.toLowerCase() || '').includes(searchLower) ||
+            (u.firstLastname?.toLowerCase() || '').includes(searchLower) ||
+            (u.email?.toLowerCase() || '').includes(searchLower)
         );
     }, [users, searchTerm]);
 

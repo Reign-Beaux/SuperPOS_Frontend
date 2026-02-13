@@ -27,18 +27,16 @@ export const useCatalogHandler = () => {
     // Mutation for creating users
     const createMutation = useMutation({
         mutationFn: createUser,
-        onSuccess: (newUser) => {
-            queryClient.setQueryData<User[]>(USERS_QUERY_KEY, (old = []) => [...old, newUser]);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
         },
     });
 
     // Mutation for updating users
     const updateMutation = useMutation({
         mutationFn: updateUser,
-        onSuccess: (_, variables) => {
-            queryClient.setQueryData<User[]>(USERS_QUERY_KEY, (old = []) =>
-                old.map(u => u.id === variables.id ? { ...u, ...variables } : u)
-            );
+        onSuccess: () => {
+             queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
         },
     });
 
