@@ -1,13 +1,13 @@
+import { Button } from "@/components/elements/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/elements/dropdown-menu";
 import {
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/elements/sidebar";
-import { Sidebar } from "./components/Sidebar";
-import { Outlet, useNavigate } from "react-router-dom";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/elements/dropdown-menu";
-import { User2, ChevronDown, LogOut } from "lucide-react";
-import { Button } from "@/components/elements/button";
 import { useAuthStore } from "@/modules/Auth/hooks/useAuthStore";
+import { ChevronDown, LogOut, User2 } from "lucide-react";
+import { Outlet, useNavigate } from "react-router-dom";
+import { Sidebar } from "./components/Sidebar";
 
 export const MainLayout = () => {
     const { user, logout } = useAuthStore();
@@ -17,6 +17,11 @@ export const MainLayout = () => {
         logout();
         navigate("/login");
     };
+
+    // Vendedor only sees POS, without layout
+    if (user?.role?.name === 'Vendedor') {
+        return <Outlet />;
+    }
 
     return (
         <SidebarProvider>

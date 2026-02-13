@@ -1,24 +1,25 @@
+import { MainLayout } from "@/components/layouts";
+import { Unauthorized } from "@/components/pages/Unauthorized";
+import { LoginPage } from "@/modules/Auth/pages/LoginPage";
+import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { createBrowserRouter } from "react-router-dom";
 import { Routes } from "./Routes";
-import { MainLayout } from "@/components/layouts";
-import { ProtectedRoute } from "@/routes/ProtectedRoute";
-import { LoginPage } from "@/modules/Auth/pages/LoginPage";
-import { Unauthorized } from "@/components/pages/Unauthorized";
 
-import ProductCatalog from "@/modules/products/pages/catalog/productCatalog";
-import UserCatalog from "@/modules/users/pages/catalog/userCatalog";
-import CustomerCatalog from "@/modules/customers/pages/catalog/CustomerCatalog";
-import RoleCatalog from "@/modules/roles/pages/catalog/RoleCatalog";
-import SalesHistory from "@/modules/sales/pages/SalesHistory";
-import SaleDetail from "@/modules/sales/pages/SaleDetail";
-import POS from "@/modules/sales/pages/POS";
-import InventoryPage from "@/modules/inventories/pages/InventoryPage";
+import { Dashboard } from "@/components/pages/Dashboard";
+import CashRegisterDetail from "@/modules/cashRegister/pages/CashRegisterDetail";
 import CashRegisterList from "@/modules/cashRegister/pages/CashRegisterList";
 import CreateCashRegister from "@/modules/cashRegister/pages/CreateCashRegister";
-import CashRegisterDetail from "@/modules/cashRegister/pages/CashRegisterDetail";
-import ReturnsList from "@/modules/returns/pages/ReturnsList";
+import CustomerCatalog from "@/modules/customers/pages/catalog/CustomerCatalog";
+import InventoryPage from "@/modules/inventories/pages/InventoryPage";
+import ProductCatalog from "@/modules/products/pages/catalog/productCatalog";
 import CreateReturn from "@/modules/returns/pages/CreateReturn";
 import ReturnDetail from "@/modules/returns/pages/ReturnDetail";
+import ReturnsList from "@/modules/returns/pages/ReturnsList";
+import RoleCatalog from "@/modules/roles/pages/catalog/RoleCatalog";
+import POS from "@/modules/sales/pages/POS";
+import SaleDetail from "@/modules/sales/pages/SaleDetail";
+import SalesHistory from "@/modules/sales/pages/SalesHistory";
+import UserCatalog from "@/modules/users/pages/catalog/userCatalog";
 
 const routes = [
     {
@@ -37,25 +38,16 @@ const routes = [
             </ProtectedRoute>
         ),
         children: [
-            // Products: Read (Seller), Create/Update (Manager). Page likely has both, so access is Seller.
-            // Buttons inside will be hidden.
+            {
+                index: true,
+                element: <Dashboard />,
+            },
             {
                 path: Routes.Products,
                 element: (
-                    <ProtectedRoute requiredRole="Vendedor"> 
+                    <ProtectedRoute requireManagerOrAbove> 
                         <ProductCatalog />
                     </ProtectedRoute>
-                    // Note: "SellerOrAbove" logic handles "Vendedor", "Gerente", "Administrador" manually if needed?
-                    // ProtectedRoute logic: if requiredRole="Vendedor", only Vendedor? 
-                    // No, `hasRole` in AuthService usually checks exact match. 
-                    // But requirement says "SellerOrAbove".
-                    // My `ProtectedRoute` implementation used `hasRole` which checks exact match,
-                    // OR `requireManagerOrAbove`.
-                    // I need a `requireSellerOrAbove` prop or assume basic auth implies Seller+ if they have a role.
-                    // Actually, all valid users have at least "Vendedor" (or equivalent hierarchy).
-                    // The roles are: Administrador, Gerente, Vendedor.
-                    // So if I just check Login, that effectively is "Any Role".
-                    // Let's check `UserCatalog` -> ManagerOrAbove.
                 ),
             },
             {
@@ -68,7 +60,11 @@ const routes = [
             },
             {
                 path: Routes.Customers,
-                element: <CustomerCatalog />, // SellerOrAbove (Base Auth)
+                element: (
+                    <ProtectedRoute requireManagerOrAbove>
+                        <CustomerCatalog />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: Routes.Roles,
@@ -88,15 +84,27 @@ const routes = [
             },
             {
                 path: "/sales/detail/:id",
-                element: <SaleDetail />, // SellerOrAbove (Base Auth)
+                element: (
+                    <ProtectedRoute requireManagerOrAbove>
+                        <SaleDetail />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: Routes.POS,
-                element: <POS />, // SellerOrAbove (Base Auth)
+                element: (
+                    <ProtectedRoute allowedRoles={['Vendedor', 'Administrador']}>
+                        <POS />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: Routes.Inventory,
-                element: <InventoryPage />, // SellerOrAbove (Base Auth)
+                element: (
+                    <ProtectedRoute requireManagerOrAbove>
+                        <InventoryPage />
+                    </ProtectedRoute>
+                ),
             },
             // Cash Register: ManagerOrAbove
             {

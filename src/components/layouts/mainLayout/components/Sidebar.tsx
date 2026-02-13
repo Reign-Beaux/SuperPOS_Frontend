@@ -1,7 +1,7 @@
 import { Routes } from "@/config/router/Routes"
+import { authService } from "@/modules/Auth/services/AuthService"
 import { Contact, DollarSign, Home, Package, RotateCcw, Shield, ShoppingCart, Users, Warehouse } from "lucide-react"
 import { Link } from "react-router-dom"
-import { authService } from "@/modules/Auth/services/AuthService"
 
 import {
     Sidebar as ShadcnSidebar,
@@ -19,74 +19,74 @@ const items = [
         title: "Home",
         url: Routes.Home,
         icon: Home,
-        minRole: "Vendedor", // Visible to all
+        // Visible to Manager/Admin
+        allowedRoles: ["Administrador", "Gerente"],
     },
     {
         title: "POS",
         url: Routes.POS,
         icon: ShoppingCart,
-        minRole: "Vendedor",
+        // Visible to Vendedor/Admin
+        allowedRoles: ["Administrador", "Vendedor"],
     },
     {
         title: "Sales History",
         url: Routes.Sales,
         icon: ShoppingCart,
-        minRole: "Gerente", // Manager or Admin
+        allowedRoles: ["Administrador", "Gerente"],
     },
     {
         title: "Products",
         url: Routes.Products,
         icon: Package,
-        minRole: "Vendedor",
+        allowedRoles: ["Administrador", "Gerente"],
     },
     {
         title: "Inventory",
         url: Routes.Inventory,
         icon: Warehouse,
-        minRole: "Vendedor",
+        allowedRoles: ["Administrador", "Gerente"],
     },
     {
         title: "Customers",
         url: Routes.Customers,
         icon: Contact,
-        minRole: "Vendedor",
+        allowedRoles: ["Administrador", "Gerente"],
     },
+    // ... Users, Roles, etc. already imply Manager+. 
+    // But let's be explicit if we use allowedRoles for everything.
     {
         title: "Users",
         url: Routes.Users,
         icon: Users,
-        minRole: "Gerente",
+        allowedRoles: ["Administrador", "Gerente"],
     },
     {
         title: "Roles",
         url: Routes.Roles,
         icon: Shield,
-        minRole: "Gerente",
+        allowedRoles: ["Administrador", "Gerente"],
     },
     {
         title: "Cash Register",
         url: Routes.CashRegister,
         icon: DollarSign,
-        minRole: "Gerente",
+        allowedRoles: ["Administrador", "Gerente"],
     },
     {
         title: "Returns",
         url: Routes.Returns,
         icon: RotateCcw,
-        minRole: "Gerente",
+        allowedRoles: ["Administrador", "Gerente"],
     },
-    // Add separate item for Create Return if needed for Seller?
-    // For now, let's stick to this.
 ]
 
 export function Sidebar() {
-    const isManagerOrAbove = authService.isManagerOrAbove();
+    const userRole = authService.getUserRole();
 
     const filteredItems = items.filter(item => {
-        if (item.minRole === "Gerente") {
-            return isManagerOrAbove;
-        }
-        return true; // Vendedor items are visible to everyone (since Admin/Manager > Vendedor)
+        if (!userRole) return false;
+        return item.allowedRoles.includes(userRole);
     });
 
     return (

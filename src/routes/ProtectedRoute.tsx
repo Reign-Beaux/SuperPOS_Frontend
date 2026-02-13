@@ -6,12 +6,14 @@ interface ProtectedRouteProps {
   children?: React.ReactNode;
   requiredRole?: "Administrador" | "Gerente" | "Vendedor";
   requireManagerOrAbove?: boolean;
+  allowedRoles?: string[];
 }
 
 export const ProtectedRoute = ({
   children,
   requiredRole,
   requireManagerOrAbove,
+  allowedRoles,
 }: ProtectedRouteProps) => {
   const { isAuthenticated } = useAuthStore();
   const token = authService.getAccessToken();
@@ -29,6 +31,13 @@ export const ProtectedRoute = ({
 
   if (requireManagerOrAbove && !authService.isManagerOrAbove()) {
     return <Navigate to="/unauthorized" replace />;
+  }
+
+  if (allowedRoles && allowedRoles.length > 0) {
+      const userRole = authService.getUserRole();
+      if (!userRole || !allowedRoles.includes(userRole)) {
+          return <Navigate to="/unauthorized" replace />;
+      }
   }
 
   return children ? <>{children}</> : <Outlet />;

@@ -1,13 +1,3 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../hooks/useAuthStore";
-import { authService } from "../services/AuthService";
-import { Button } from "../../../components/elements/button";
-import { Input } from "../../../components/elements/input";
-import { Label } from "../../../components/elements/label";
 import {
   Card,
   CardContent,
@@ -16,6 +6,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/elements/card";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import * as z from "zod";
+import { Button } from "../../../components/elements/button";
+import { Input } from "../../../components/elements/input";
+import { Label } from "../../../components/elements/label";
+import { useAuthStore } from "../hooks/useAuthStore";
+import { authService } from "../services/AuthService";
 
 const loginSchema = z.object({
   email: z.string().email("Correo electrónico inválido"),
@@ -45,7 +45,12 @@ export const LoginForm = () => {
     try {
       const response = await authService.login(data.email, data.password);
       login(response.user);
-      navigate("/"); // Redirect to dashboard or home
+      
+      if (response.user.role.name === 'Vendedor') {
+          navigate("/pos");
+      } else {
+          navigate("/"); // Redirect to dashboard or home
+      }
     } catch (err: any) {
       if (err.response?.status === 400) {
         setError("Credenciales inválidas. Verifica tu email y contraseña.");
