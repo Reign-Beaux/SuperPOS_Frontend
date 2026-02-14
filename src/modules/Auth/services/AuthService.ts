@@ -22,6 +22,8 @@ export interface LoginResponse {
     accessToken: string;
     refreshToken: string;
     expiresIn: number;
+    accessTokenExpiresAt: string;
+    refreshTokenExpiresAt: string;
     user: User;
 }
 
@@ -36,11 +38,15 @@ class AuthService {
     private static instance: AuthService;
     private accessToken: string | null = null;
     private refreshToken: string | null = null;
+    private accessTokenExpiresAt: string | null = null; // New
+    private refreshTokenExpiresAt: string | null = null; // New
     private tokenExpirationTimer: ReturnType<typeof setTimeout> | null = null;
     private isRefreshing: boolean = false; // Prevent concurrent refresh calls
 
     private constructor() {
         this.refreshToken = localStorage.getItem('refreshToken');
+        this.accessTokenExpiresAt = localStorage.getItem('accessTokenExpiresAt'); // New
+        this.refreshTokenExpiresAt = localStorage.getItem('refreshTokenExpiresAt'); // New
         const userStr = localStorage.getItem('user');
         if (userStr) {
             // Restore session if possible? 
@@ -65,9 +71,9 @@ class AuthService {
             password
         });
 
-        const { accessToken, refreshToken, expiresIn, user } = response.data;
+        const { accessToken, refreshToken, expiresIn, accessTokenExpiresAt, refreshTokenExpiresAt, user } = response.data;
 
-        this.setSession(accessToken, refreshToken, expiresIn, user);
+        this.setSession(accessToken, refreshToken, expiresIn, accessTokenExpiresAt, refreshTokenExpiresAt, user);
 
         return response.data;
     }
@@ -94,9 +100,16 @@ class AuthService {
                 refreshToken
             });
 
-            const { accessToken, expiresIn } = response.data;
+            const { accessToken, expiresIn, refreshToken: newRefreshToken, refreshTokenExpiresAt: newRefreshTokenExpiresAt } = response.data;
             
             this.accessToken = accessToken;
+            this.refreshToken = newRefreshToken; // Update instance variable
+            this.accessTokenExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString(); // Update access token expiration from expiresIn
+            this.refreshTokenExpiresAt = newRefreshTokenExpiresAt; // Update refresh token expiration
+            localStorage.setItem('refreshToken', newRefreshToken); // Store new refresh token
+            localStorage.setItem('accessTokenExpiresAt', this.accessTokenExpiresAt); // Store new access token expiration
+            localStorage.setItem('refreshTokenExpiresAt', newRefreshTokenExpiresAt); // Store new refresh token expiration
+
             this.scheduleTokenRefresh(expiresIn);
             
             return response.data; // Return the full response data
@@ -126,10 +139,14 @@ class AuthService {
         this.clearSession();
     }
 
-    private setSession(accessToken: string, refreshToken: string, expiresIn: number, user: User) {
+    private setSession(accessToken: string, refreshToken: string, expiresIn: number, accessTokenExpiresAt: string, refreshTokenExpiresAt: string, user: User) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
+        this.accessTokenExpiresAt = accessTokenExpiresAt;
+        this.refreshTokenExpiresAt = refreshTokenExpiresAt;
         localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('accessTokenExpiresAt', accessTokenExpiresAt);
+        localStorage.setItem('refreshTokenExpiresAt', refreshTokenExpiresAt);
         localStorage.setItem('user', JSON.stringify(user));
 
         this.scheduleTokenRefresh(expiresIn);
@@ -138,7 +155,11 @@ class AuthService {
     private clearSession() {
         this.accessToken = null;
         this.refreshToken = null;
+        this.accessTokenExpiresAt = null;
+        this.refreshTokenExpiresAt = null;
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('accessTokenExpiresAt');
+        localStorage.removeItem('refreshTokenExpiresAt');
         localStorage.removeItem('user');
 
         if (this.tokenExpirationTimer) {
@@ -171,7 +192,15 @@ class AuthService {
     }
 
     getAccessToken(): string | null {
-        return this.accessToken;
+        // Also check if the access token has expired based on accessTokenExpiresAt
+        if (this.accessToken && this.accessTokenExpiresAt) {
+            const now = new Date();
+            const expiration = new Date(this.accessTokenExpiresAt);
+            if (now < expiration) {
+                return this.accessToken;
+            }
+        }
+        return null;
     }
     
     // Sometimes we need to restore access from refresh token on page load
@@ -179,21 +208,40 @@ class AuthService {
     // Usually we try to refresh immediately if we have a refresh token but no access token.
     async tryAutoLogin(): Promise<boolean> {
         
-        if (this.accessToken) {
+        if (this.getAccessToken()) { // Use getAccessToken to check expiration
             return true;
         }
         
-        const refreshToken = localStorage.getItem('refreshToken');
-        
-        if (!refreshToken) {
+        const refreshToken = this.refreshToken || localStorage.getItem('refreshToken');
+        const refreshTokenExpiresAt = this.refreshTokenExpiresAt || localStorage.getItem('refreshTokenExpiresAt');
+
+        if (!refreshToken || !refreshTokenExpiresAt) {
+            return false;
+        }
+
+        // Check if refresh token itself has expired
+        const now = new Date();
+        const refreshExpiration = new Date(refreshTokenExpiresAt);
+        if (now >= refreshExpiration) {
+            console.warn('Refresh token has expired. Logging out.');
+            this.clearSession();
             return false;
         }
 
         // Ensure this.refreshToken is set from localStorage
         this.refreshToken = refreshToken;
+        this.refreshTokenExpiresAt = refreshTokenExpiresAt;
 
         try {
-            await this.refreshAccessToken();
+            const refreshResponse = await this.refreshAccessToken();
+            // Update the stored tokens and expiration times
+            this.accessToken = refreshResponse.accessToken;
+            this.refreshToken = refreshResponse.refreshToken;
+            this.accessTokenExpiresAt = new Date(Date.now() + refreshResponse.expiresIn * 1000).toISOString();
+            this.refreshTokenExpiresAt = refreshResponse.refreshTokenExpiresAt;
+            localStorage.setItem('accessTokenExpiresAt', this.accessTokenExpiresAt);
+            localStorage.setItem('refreshTokenExpiresAt', this.refreshTokenExpiresAt);
+            localStorage.setItem('refreshToken', refreshResponse.refreshToken); // Ensure refresh token is updated in local storage
             return true;
         } catch (error) {
             console.error('❌ Auto-login failed:', error);
@@ -202,7 +250,7 @@ class AuthService {
     }
 
     isAuthenticated(): boolean {
-        return !!this.accessToken && !this.isTokenExpired(this.accessToken);
+        return !!this.getAccessToken(); // Use getAccessToken for authentication check
     }
 
      isTokenExpired(token: string): boolean {
