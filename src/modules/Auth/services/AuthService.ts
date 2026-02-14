@@ -255,12 +255,42 @@ class AuthService {
 
      isTokenExpired(token: string): boolean {
         try {
-            const decoded: any = jwtDecode(token);
+            const decoded = jwtDecode<{ exp: number }>(token);
             const currentTime = Date.now() / 1000;
             return decoded.exp < currentTime;
         } catch {
             return true;
         }
+    }
+
+    /**
+     * Solicitar código de recuperación de contraseña
+     */
+    async forgotPassword(email: string): Promise<void> {
+        await axios.post(`${API_URL}/auth/forgot-password`, { email });
+    }
+
+    /**
+     * Verificar código de recuperación
+     * @returns verificationToken
+     */
+    async verifyCode(email: string, code: string): Promise<string> {
+        const response = await axios.post(`${API_URL}/auth/verify-code`, { email, code });
+        return response.data.data.verificationToken;
+    }
+
+    /**
+     * Cambiar contraseña usando el token de verificación
+     */
+    async resetPassword(verificationToken: string, newPassword: string): Promise<void> {
+        await axios.post(`${API_URL}/auth/reset-password`, {
+            verificationToken,
+            newPassword
+        });
+        
+        // Al cambiar la contraseña, el backend revoca todas las sesiones.
+        // Nos aseguramos de limpiar la sesión local por si acaso.
+        this.clearSession();
     }
 
     getUserRole(): string | null {

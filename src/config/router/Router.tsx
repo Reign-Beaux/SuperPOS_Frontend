@@ -1,6 +1,9 @@
 import { MainLayout } from "@/components/layouts";
 import { Unauthorized } from "@/components/pages/Unauthorized";
+import { ForgotPasswordPage } from "@/modules/Auth/pages/ForgotPasswordPage";
 import { LoginPage } from "@/modules/Auth/pages/LoginPage";
+import { ResetPasswordPage } from "@/modules/Auth/pages/ResetPasswordPage";
+import { VerifyCodePage } from "@/modules/Auth/pages/VerifyCodePage";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { createBrowserRouter } from "react-router-dom";
 import { Routes } from "./Routes";
@@ -25,6 +28,18 @@ const routes = [
     {
         path: Routes.Login,
         element: <LoginPage />,
+    },
+    {
+        path: Routes.ForgotPassword,
+        element: <ForgotPasswordPage />,
+    },
+    {
+        path: Routes.VerifyCode,
+        element: <VerifyCodePage />,
+    },
+    {
+        path: Routes.ResetPassword,
+        element: <ResetPasswordPage />,
     },
     {
         path: Routes.Unauthorized,

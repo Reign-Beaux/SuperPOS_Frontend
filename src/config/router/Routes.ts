@@ -10,6 +10,9 @@ export const Routes = {
     CashRegister: "/cash-register",
     Returns: "/returns",
     Login: "/login",
+    ForgotPassword: "/forgot-password",
+    VerifyCode: "/verify-code",
+    ResetPassword: "/reset-password",
     Unauthorized: "/unauthorized",
 } as const;
 

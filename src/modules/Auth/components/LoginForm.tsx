@@ -9,13 +9,16 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import * as z from "zod";
 import { Button } from "../../../components/elements/button";
 import { Input } from "../../../components/elements/input";
 import { Label } from "../../../components/elements/label";
 import { useAuthStore } from "../hooks/useAuthStore";
 import { authService } from "../services/AuthService";
+import { Routes } from "@/config/router/Routes";
+import { CheckCircle2 } from "lucide-react";
+import { AxiosError } from "axios";
 
 const loginSchema = z.object({
   email: z.string().email("Correo electrónico inválido"),
@@ -26,6 +29,8 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export const LoginForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const successMessage = location.state?.message;
   const { login } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,11 +56,12 @@ export const LoginForm = () => {
       } else {
           navigate("/"); // Redirect to dashboard or home
       }
-    } catch (err: any) {
-      if (err.response?.status === 400) {
+    } catch (err) {
+      const errorResponse = err as AxiosError<{ detail?: string }>;
+      if (errorResponse.response?.status === 400) {
         setError("Credenciales inválidas. Verifica tu email y contraseña.");
-      } else if (err.response?.status === 403) {
-        const detail = err.response.data?.detail || "";
+      } else if (errorResponse.response?.status === 403) {
+        const detail = errorResponse.response.data?.detail || "";
         if (detail.includes("bloqueada")) {
           const matches = detail.match(/(\d+) minutos/);
           const minutes = matches ? matches[1] : "30";
@@ -82,6 +88,16 @@ export const LoginForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {successMessage && (
+          <div
+            className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md flex items-start gap-2"
+            role="alert"
+          >
+            <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+            <span>{successMessage}</span>
+          </div>
+        )}
+
         {error && (
           <div
             className="p-3 text-sm text-destructive bg-destructive/10 rounded-md"
@@ -107,7 +123,15 @@ export const LoginForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Contraseña</Label>
+              <Link
+                to={Routes.ForgotPassword}
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
             <Input
               id="password"
               type="password"
@@ -126,7 +150,7 @@ export const LoginForm = () => {
         </form>
       </CardContent>
       <CardFooter className="flex flex-col space-y-2 text-center text-sm text-muted-foreground">
-        <p>¿Olvidaste tu contraseña? Contacta al administrador.</p>
+        <p>© 2026 SuperPOS. Todos los derechos reservados.</p>
       </CardFooter>
     </Card>
   );
