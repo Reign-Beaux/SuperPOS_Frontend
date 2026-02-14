@@ -28,6 +28,8 @@ export interface LoginResponse {
 export interface RefreshTokenResponse {
     accessToken: string;
     expiresIn: number;
+    refreshToken: string;
+    refreshTokenExpiresAt: string;
 }
 
 class AuthService {
@@ -73,7 +75,7 @@ class AuthService {
     /**
      * Renovar access token
      */
-    async refreshAccessToken(): Promise<string> {
+    async refreshAccessToken(): Promise<RefreshTokenResponse> {
         // Prevent concurrent refresh attempts
         if (this.isRefreshing) {
             throw new Error('Token refresh already in progress');
@@ -97,7 +99,7 @@ class AuthService {
             this.accessToken = accessToken;
             this.scheduleTokenRefresh(expiresIn);
             
-            return accessToken;
+            return response.data; // Return the full response data
         } catch (error) {
             console.error('❌ Token refresh failed:', error);
             this.clearSession(); // Don't call logout to avoid another API call

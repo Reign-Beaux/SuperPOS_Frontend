@@ -58,9 +58,15 @@ export const useInterceptor = () => {
                     originalRequest._retry = true;
 
                     try {
-                        const newToken = await authService.refreshAccessToken();
+                        const refreshResponse = await authService.refreshAccessToken(); // Get full RefreshTokenResponse
+                        const { accessToken, refreshToken, refreshTokenExpiresAt } = refreshResponse;
+
+                        // Save ALL new tokens
+                        localStorage.setItem('refreshToken', refreshToken);
+                        localStorage.setItem('refreshTokenExpiresAt', refreshTokenExpiresAt);
+
                         if (originalRequest.headers) {
-                             originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                             originalRequest.headers.Authorization = `Bearer ${accessToken}`;
                         }
                         return axios(originalRequest);
                     } catch (refreshError) {
