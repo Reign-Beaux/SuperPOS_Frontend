@@ -9,6 +9,8 @@ export const Routes = {
     Inventory: "/inventory",
     CashRegister: "/cash-register",
     Returns: "/returns",
+    Reports: "/reports",
+    Chat: "/chat",
     Login: "/login",
     ForgotPassword: "/forgot-password",
     VerifyCode: "/verify-code",

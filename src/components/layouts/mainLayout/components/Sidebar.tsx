@@ -1,6 +1,18 @@
 import { Routes } from "@/config/router/Routes"
 import { authService } from "@/modules/Auth/services/AuthService"
-import { Contact, DollarSign, Home, Package, RotateCcw, Shield, ShoppingCart, Users, Warehouse } from "lucide-react"
+import { 
+    Contact, 
+    DollarSign, 
+    Home, 
+    Package, 
+    RotateCcw, 
+    Shield, 
+    ShoppingCart, 
+    Users, 
+    Warehouse, 
+    FileBarChart, 
+    MessageSquare 
+} from "lucide-react"
 import { Link } from "react-router-dom"
 
 import {
@@ -78,6 +90,18 @@ const items = [
         url: Routes.Returns,
         icon: RotateCcw,
         allowedRoles: ["Administrador", "Gerente"],
+    },
+    {
+        title: "Reports",
+        url: Routes.Reports,
+        icon: FileBarChart,
+        allowedRoles: ["Administrador", "Gerente"],
+    },
+    {
+        title: "Chat",
+        url: Routes.Chat,
+        icon: MessageSquare,
+        allowedRoles: ["Administrador", "Gerente", "Vendedor"],
     },
 ]
 

@@ -2,8 +2,9 @@ import { Button } from "@/components/elements/button";
 import { SearchableSelect } from "@/components/widgets/SearchableSelect";
 import { useAuthStore } from "@/modules/Auth/hooks/useAuthStore";
 import { useCustomerApi } from "@/modules/customers/api/customerApi";
-import { LogOut } from "lucide-react";
+import { LogOut, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Routes } from "@/config/router/Routes";
 
 import { useInventoryApi } from "@/modules/inventories/api/inventoryApi";
 import type { Product } from "@/modules/products/models/Product";
@@ -144,10 +145,16 @@ const POS = () => {
         <div className="container mx-auto py-5 h-[calc(100vh-80px)] flex flex-col gap-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">POS (Point of Sale)</h1>
-                <Button variant="outline" size="sm" onClick={() => { logout(); navigate("/login"); }}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Cerrar Sesión
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => navigate(Routes.Chat)}>
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        Chat
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => { logout(); navigate("/login"); }}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Cerrar Sesión
+                    </Button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">

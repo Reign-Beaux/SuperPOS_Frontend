@@ -6,20 +6,22 @@ import {
 } from "@/components/elements/sidebar";
 import { useAuthStore } from "@/modules/Auth/hooks/useAuthStore";
 import { ChevronDown, LogOut, User2 } from "lucide-react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
+import { Routes } from "@/config/router/Routes";
 
 export const MainLayout = () => {
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleLogout = () => {
         logout();
         navigate("/login");
     };
 
-    // Vendedor only sees POS, without layout
-    if (user?.role?.name === 'Vendedor') {
+    // Vendedor only sees POS without layout, but can see layout for Chat
+    if (user?.role?.name === 'Vendedor' && location.pathname === Routes.POS) {
         return <Outlet />;
     }
 

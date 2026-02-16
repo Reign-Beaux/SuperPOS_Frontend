@@ -19,6 +19,8 @@ import CreateReturn from "@/modules/returns/pages/CreateReturn";
 import ReturnDetail from "@/modules/returns/pages/ReturnDetail";
 import ReturnsList from "@/modules/returns/pages/ReturnsList";
 import RoleCatalog from "@/modules/roles/pages/catalog/RoleCatalog";
+import { ChatPage } from "@/modules/chat/pages/ChatPage";
+import { ReportsPage } from "@/modules/reports/pages/ReportsPage";
 import POS from "@/modules/sales/pages/POS";
 import SaleDetail from "@/modules/sales/pages/SaleDetail";
 import SalesHistory from "@/modules/sales/pages/SalesHistory";
@@ -162,6 +164,18 @@ const routes = [
             {
                 path: "/returns/detail/:id", // Detail -> SellerOrAbove
                 element: <ReturnDetail />,
+            },
+            {
+                path: Routes.Reports,
+                element: (
+                    <ProtectedRoute requireManagerOrAbove>
+                        <ReportsPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: Routes.Chat,
+                element: <ChatPage />,
             },
         ],
     },

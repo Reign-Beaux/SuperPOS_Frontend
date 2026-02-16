@@ -1,6 +1,6 @@
 import { useHttpClient } from "@/config/httpClient";
 import { useCallback } from "react";
-import type { Product, CreateProductRequest, UpdateProductRequest } from "./models/Product";
+import type { Product, CreateProductRequest, UpdateProductRequest, PagedResponse } from "./models/Product";
 
 
 const endpoints = {
@@ -10,6 +10,8 @@ const endpoints = {
     update: (id: string) => `Product/${id}`,
     delete: (id: string) => `Product/${id}`,
     search: (term: string) => `Product/Search?term=${term}`,
+    paged: (pageIndex: number, pageSize: number, searchTerm?: string) => 
+        `Product/paged?pageIndex=${pageIndex}&pageSize=${pageSize}${searchTerm ? `&searchTerm=${searchTerm}` : ''}`,
 };
 
 export const useProductApi = () => {
@@ -17,6 +19,10 @@ export const useProductApi = () => {
 
     const getAllProducts = useCallback(async () => {
         return await get<Product[]>(endpoints.getAll);
+    }, [get]);
+
+    const getPagedProducts = useCallback(async (pageIndex: number, pageSize: number, searchTerm?: string) => {
+        return await get<PagedResponse<Product>>(endpoints.paged(pageIndex, pageSize, searchTerm));
     }, [get]);
 
     const getProductById = useCallback(async (id: string) => {
@@ -41,6 +47,7 @@ export const useProductApi = () => {
 
     return {
         getAllProducts,
+        getPagedProducts,
         getProductById,
         createProduct,
         updateProduct,

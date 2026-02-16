@@ -1,5 +1,6 @@
 import { useHttpClient } from "@/config/httpClient";
 import { useCallback } from "react";
+import { authService } from "@/modules/Auth/services/AuthService";
 import type { Sale, CreateSaleRequest } from "../models/Sale";
 
 const endpoints = {
@@ -24,10 +25,12 @@ export const useSaleApi = () => {
     }, [post]);
 
     const downloadTicketPdf = useCallback(async (saleId: string) => {
+        const token = authService.getAccessToken();
         const response = await fetch(`${import.meta.env.VITE_API_URL}/Sale/${saleId}/ticket`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/pdf',
+                'Authorization': `Bearer ${token}`
             },
         });
 

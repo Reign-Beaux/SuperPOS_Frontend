@@ -1,5 +1,6 @@
 import { useHttpClient } from "@/config/httpClient";
 import { useCallback } from "react";
+import { authService } from "@/modules/Auth/services/AuthService";
 import type { CashRegister, CreateCashRegisterRequest, CashRegisterResponse } from "../models/CashRegister";
 
 const endpoints = {
@@ -25,10 +26,12 @@ export const useCashRegisterApi = () => {
     }, [post]);
 
     const downloadCashRegisterReport = useCallback(async (id: string) => {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/CashRegister/${id}/report`, {
+        const token = authService.getAccessToken();
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/CashRegister/${id}/report`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/pdf',
+                'Authorization': `Bearer ${token}`
             },
         });
 
