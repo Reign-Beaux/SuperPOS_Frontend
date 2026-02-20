@@ -13,7 +13,7 @@ import {
     FileBarChart, 
     MessageSquare 
 } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 
 import {
     Sidebar as ShadcnSidebar,
@@ -107,6 +107,7 @@ const items = [
 
 export function Sidebar() {
     const userRole = authService.getUserRole();
+    const location = useLocation();
 
     const filteredItems = items.filter(item => {
         if (!userRole) return false;
@@ -120,16 +121,21 @@ export function Sidebar() {
                     <SidebarGroupLabel>Application</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {filteredItems.map((item) => (
-                                <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild>
-                                        <Link to={item.url}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
+                            {filteredItems.map((item) => {
+                                const isActive = location.pathname === item.url || 
+                                               (item.url !== "/" && location.pathname.startsWith(item.url));
+                                
+                                return (
+                                    <SidebarMenuItem key={item.title}>
+                                        <SidebarMenuButton asChild isActive={isActive}>
+                                            <Link to={item.url}>
+                                                <item.icon />
+                                                <span>{item.title}</span>
+                                            </Link>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                );
+                            })}
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
