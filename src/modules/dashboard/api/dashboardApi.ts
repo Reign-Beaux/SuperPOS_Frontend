@@ -35,7 +35,16 @@ export const useDashboardApi = () => {
     }, [get]);
 
     const getComparison = useCallback(async (period: DashboardPeriod) => {
-        return await get<DashboardComparison>(endpoints.comparison(period));
+        const response = await get<any>(endpoints.comparison(period));
+        
+        // Map backend names to frontend names if they differ
+        return {
+            ...response,
+            salesChangePercent: response.salesChangePercent ?? response.salesCountChangePercent ?? 0,
+            averageTicketChangePercent: response.averageTicketChangePercent ?? response.avgTicketChangePercent ?? 0,
+            itemsSoldChangePercent: response.itemsSoldChangePercent ?? 0,
+            customersChangePercent: response.customersChangePercent ?? 0
+        } as DashboardComparison;
     }, [get]);
 
     const getTopProducts = useCallback(async (period: DashboardPeriod, top: number = 10, startDate?: string, endDate?: string) => {
